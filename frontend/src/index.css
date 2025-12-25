@@ -1,0 +1,356 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+}
+
+/* ==========================================
+   TipTap Editor Styles - Sprint 2
+   ========================================== */
+
+.ProseMirror {
+  outline: none;
+  min-height: 400px;
+  padding: 0.5rem 0;
+}
+
+.ProseMirror > * + * {
+  margin-top: 0.75em;
+}
+
+/* Placeholder */
+.ProseMirror p.is-editor-empty:first-child::before {
+  color: #64748b;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+/* Headings */
+.ProseMirror h1 {
+  font-size: 2em;
+  font-weight: 700;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  line-height: 1.2;
+}
+
+.ProseMirror h2 {
+  font-size: 1.5em;
+  font-weight: 600;
+  margin-top: 1.25em;
+  margin-bottom: 0.5em;
+  line-height: 1.3;
+}
+
+.ProseMirror h3 {
+  font-size: 1.25em;
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ProseMirror h4 {
+  font-size: 1.1em;
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-size: 1em;
+  font-weight: 600;
+  margin-top: 1em;
+  margin-bottom: 0.5em;
+}
+
+/* Paragraphs */
+.ProseMirror p {
+  margin: 0.5em 0;
+}
+
+/* Lists */
+.ProseMirror ul,
+.ProseMirror ol {
+  padding-left: 1.5em;
+  margin: 0.5em 0;
+}
+
+.ProseMirror li {
+  margin: 0.25em 0;
+}
+
+.ProseMirror li p {
+  margin: 0;
+}
+
+/* Task Lists */
+.ProseMirror ul[data-type="taskList"] {
+  list-style: none;
+  padding-left: 0;
+}
+
+.ProseMirror ul[data-type="taskList"] li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.ProseMirror ul[data-type="taskList"] li > label input[type="checkbox"] {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+  accent-color: #3b82f6;
+}
+
+.ProseMirror ul[data-type="taskList"] li > div {
+  flex: 1;
+}
+
+.ProseMirror ul[data-type="taskList"] li[data-checked="true"] > div {
+  text-decoration: line-through;
+  color: #64748b;
+}
+
+/* Blockquotes */
+.ProseMirror blockquote {
+  border-left: 4px solid #3b82f6;
+  padding-left: 1em;
+  margin: 1em 0;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Code */
+.ProseMirror code {
+  background-color: #334155;
+  padding: 0.2em 0.4em;
+  border-radius: 0.25em;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-size: 0.9em;
+}
+
+.ProseMirror pre {
+  background-color: #1e293b;
+  border-radius: 0.5em;
+  padding: 1em;
+  overflow-x: auto;
+  margin: 1em 0;
+}
+
+.ProseMirror pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.875em;
+  color: #e2e8f0;
+}
+
+/* Syntax highlighting (lowlight) */
+.ProseMirror pre .hljs-comment,
+.ProseMirror pre .hljs-quote {
+  color: #6b7280;
+}
+
+.ProseMirror pre .hljs-keyword,
+.ProseMirror pre .hljs-selector-tag,
+.ProseMirror pre .hljs-addition {
+  color: #c084fc;
+}
+
+.ProseMirror pre .hljs-number,
+.ProseMirror pre .hljs-string,
+.ProseMirror pre .hljs-meta .hljs-meta-string,
+.ProseMirror pre .hljs-literal,
+.ProseMirror pre .hljs-doctag,
+.ProseMirror pre .hljs-regexp {
+  color: #4ade80;
+}
+
+.ProseMirror pre .hljs-title,
+.ProseMirror pre .hljs-section,
+.ProseMirror pre .hljs-name,
+.ProseMirror pre .hljs-selector-id,
+.ProseMirror pre .hljs-selector-class {
+  color: #60a5fa;
+}
+
+.ProseMirror pre .hljs-attribute,
+.ProseMirror pre .hljs-attr,
+.ProseMirror pre .hljs-variable,
+.ProseMirror pre .hljs-template-variable,
+.ProseMirror pre .hljs-class .hljs-title,
+.ProseMirror pre .hljs-type {
+  color: #fbbf24;
+}
+
+.ProseMirror pre .hljs-symbol,
+.ProseMirror pre .hljs-bullet,
+.ProseMirror pre .hljs-subst,
+.ProseMirror pre .hljs-meta,
+.ProseMirror pre .hljs-meta .hljs-keyword,
+.ProseMirror pre .hljs-selector-attr,
+.ProseMirror pre .hljs-selector-pseudo,
+.ProseMirror pre .hljs-link {
+  color: #f472b6;
+}
+
+.ProseMirror pre .hljs-built_in,
+.ProseMirror pre .hljs-deletion {
+  color: #fb7185;
+}
+
+/* Horizontal Rule */
+.ProseMirror hr {
+  border: none;
+  border-top: 2px solid #334155;
+  margin: 2em 0;
+}
+
+/* Tables */
+.ProseMirror table {
+  border-collapse: collapse;
+  margin: 1em 0;
+  overflow: hidden;
+  width: 100%;
+}
+
+.ProseMirror th,
+.ProseMirror td {
+  border: 1px solid #334155;
+  padding: 0.5em 1em;
+  vertical-align: top;
+  position: relative;
+}
+
+.ProseMirror th {
+  background-color: #1e293b;
+  font-weight: 600;
+  text-align: left;
+}
+
+.ProseMirror td {
+  background-color: transparent;
+}
+
+.ProseMirror .selectedCell:after {
+  background: rgba(59, 130, 246, 0.2);
+  content: "";
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  pointer-events: none;
+  position: absolute;
+  z-index: 2;
+}
+
+.ProseMirror .column-resize-handle {
+  background-color: #3b82f6;
+  bottom: -2px;
+  position: absolute;
+  right: -2px;
+  pointer-events: none;
+  top: 0;
+  width: 4px;
+}
+
+/* Links */
+.ProseMirror a {
+  color: #60a5fa;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.ProseMirror a:hover {
+  color: #93c5fd;
+}
+
+/* Images */
+.ProseMirror img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5em;
+  margin: 1em 0;
+}
+
+.ProseMirror img.ProseMirror-selectednode {
+  outline: 3px solid #3b82f6;
+}
+
+/* Callouts */
+.ProseMirror .callout {
+  border-radius: 0.5em;
+  padding: 1em;
+  margin: 1em 0;
+}
+
+.ProseMirror .callout-info {
+  background-color: rgba(59, 130, 246, 0.1);
+  border-left: 4px solid #3b82f6;
+}
+
+.ProseMirror .callout-warning {
+  background-color: rgba(245, 158, 11, 0.1);
+  border-left: 4px solid #f59e0b;
+}
+
+.ProseMirror .callout-danger {
+  background-color: rgba(239, 68, 68, 0.1);
+  border-left: 4px solid #ef4444;
+}
+
+.ProseMirror .callout-success {
+  background-color: rgba(34, 197, 94, 0.1);
+  border-left: 4px solid #22c55e;
+}
+
+.ProseMirror .callout-note {
+  background-color: rgba(148, 163, 184, 0.1);
+  border-left: 4px solid #94a3b8;
+}
+
+/* Selection */
+.ProseMirror ::selection {
+  background: rgba(59, 130, 246, 0.3);
+}
+
+/* Focus styles */
+.ProseMirror:focus-visible {
+  outline: none;
+}
+
+/* Tippy tooltip styles for slash commands */
+.tippy-box {
+  background-color: transparent;
+  padding: 0;
+}
+
+.tippy-content {
+  padding: 0;
+}
