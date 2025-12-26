@@ -79,6 +79,7 @@ export default function EditorPage() {
   const queryClient = useQueryClient();
   const [wordCount, setWordCount] = useState(0);
   const [showAssessmentBuilder, setShowAssessmentBuilder] = useState(false);
+  const [newlyCreatedAssessmentId, setNewlyCreatedAssessmentId] = useState<string | null>(null);
 
   // Fetch page data
   const {
@@ -115,11 +116,15 @@ export default function EditorPage() {
         description: data.description,
         passing_score: data.passing_score || 80,
       }),
-    onSuccess: () => {
-      refetchAssessment();
+    onSuccess: (newAssessment) => {
+      setNewlyCreatedAssessmentId(newAssessment.id);
       setShowAssessmentBuilder(true);
+      refetchAssessment(); // Also refresh the query cache
     },
   });
+
+  // Get the assessment ID to use (from query or newly created)
+  const activeAssessmentId = assessment?.id || newlyCreatedAssessmentId;
 
   // Update mutation
   const updateMutation = useMutation({
@@ -352,7 +357,7 @@ export default function EditorPage() {
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  if (assessment) {
+                  if (activeAssessmentId) {
                     setShowAssessmentBuilder(true);
                   } else {
                     createAssessmentMutation.mutate({
@@ -363,18 +368,18 @@ export default function EditorPage() {
                 }}
                 disabled={createAssessmentMutation.isPending}
                 className={`px-3 py-2 rounded-md transition text-sm flex items-center gap-1.5 ${
-                  assessment
+                  activeAssessmentId
                     ? 'text-green-400 hover:text-green-300 hover:bg-slate-700'
                     : 'text-slate-300 hover:text-white hover:bg-slate-700'
                 }`}
-                title={assessment ? 'Edit Assessment' : 'Add Assessment'}
+                title={activeAssessmentId ? 'Edit Assessment' : 'Add Assessment'}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                 </svg>
                 {createAssessmentMutation.isPending
                   ? 'Creating...'
-                  : assessment
+                  : activeAssessmentId
                   ? 'Assessment'
                   : 'Add Assessment'}
               </button>
@@ -516,11 +521,11 @@ export default function EditorPage() {
       </div>
 
       {/* Assessment Builder Modal */}
-      {showAssessmentBuilder && assessment && (
+      {showAssessmentBuilder && activeAssessmentId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
             <AssessmentBuilder
-              assessmentId={assessment.id}
+              assessmentId={activeAssessmentId}
               onCancel={() => setShowAssessmentBuilder(false)}
               onSave={() => {
                 setShowAssessmentBuilder(false);
