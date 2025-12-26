@@ -25,8 +25,10 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import { useCallback, useEffect, useState } from 'react';
 
-import { contentApi, spaceApi } from '../lib/api';
+import { contentApi, spaceApi, learningApi } from '../lib/api';
+import type { Assessment } from '../lib/api';
 import { useAutoSave } from '../hooks/useAutoSave';
+import { AssessmentBuilder } from '../components/learning';
 import { useEditorShortcuts } from '../hooks/useEditorShortcuts';
 import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { SaveStatusIndicator } from '../components/editor/SaveStatusIndicator';
@@ -76,6 +78,7 @@ export default function EditorPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [wordCount, setWordCount] = useState(0);
+  const [showAssessmentBuilder, setShowAssessmentBuilder] = useState(false);
 
   // Fetch page data
   const {
@@ -93,6 +96,29 @@ export default function EditorPage() {
     queryKey: ['space', page?.space_id],
     queryFn: () => spaceApi.get(page!.space_id),
     enabled: !!page?.space_id,
+  });
+
+  // Fetch assessment for this page (if any)
+  const { data: assessment, refetch: refetchAssessment } = useQuery({
+    queryKey: ['page-assessment', pageId],
+    queryFn: () => learningApi.getPageAssessment(pageId!),
+    enabled: !!pageId,
+    retry: false, // Don't retry on 404
+  });
+
+  // Create assessment mutation
+  const createAssessmentMutation = useMutation({
+    mutationFn: (data: { title: string; description?: string; passing_score?: number }) =>
+      learningApi.createAssessment({
+        page_id: pageId!,
+        title: data.title,
+        description: data.description,
+        passing_score: data.passing_score || 80,
+      }),
+    onSuccess: () => {
+      refetchAssessment();
+      setShowAssessmentBuilder(true);
+    },
   });
 
   // Update mutation
@@ -325,6 +351,34 @@ export default function EditorPage() {
             />
             <div className="flex gap-2">
               <button
+                onClick={() => {
+                  if (assessment) {
+                    setShowAssessmentBuilder(true);
+                  } else {
+                    createAssessmentMutation.mutate({
+                      title: `Assessment: ${page.title}`,
+                      description: `Quiz for ${page.title}`,
+                    });
+                  }
+                }}
+                disabled={createAssessmentMutation.isPending}
+                className={`px-3 py-2 rounded-md transition text-sm flex items-center gap-1.5 ${
+                  assessment
+                    ? 'text-green-400 hover:text-green-300 hover:bg-slate-700'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                }`}
+                title={assessment ? 'Edit Assessment' : 'Add Assessment'}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+                {createAssessmentMutation.isPending
+                  ? 'Creating...'
+                  : assessment
+                  ? 'Assessment'
+                  : 'Add Assessment'}
+              </button>
+              <button
                 onClick={handleExport}
                 className="px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-md transition text-sm"
                 title="Export as Markdown (Cmd+Shift+E)"
@@ -460,6 +514,22 @@ export default function EditorPage() {
           </span>
         </div>
       </div>
+
+      {/* Assessment Builder Modal */}
+      {showAssessmentBuilder && assessment && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+            <AssessmentBuilder
+              assessmentId={assessment.id}
+              onCancel={() => setShowAssessmentBuilder(false)}
+              onSave={() => {
+                setShowAssessmentBuilder(false);
+                refetchAssessment();
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
