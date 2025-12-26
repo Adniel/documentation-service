@@ -7,7 +7,8 @@
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { spaceApi, contentApi, navigationApi, workspaceApi, type Space, type PageSummary } from '../lib/api';
+import { spaceApi, contentApi, navigationApi, workspaceApi } from '../lib/api';
+import type { Space, PageSummary } from '../types';
 import { Breadcrumbs } from '../components/navigation/Breadcrumbs';
 import CreateSpaceModal from '../components/CreateSpaceModal';
 import { clsx } from 'clsx';

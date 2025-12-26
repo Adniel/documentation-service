@@ -105,6 +105,25 @@ async def create_assessment(
     return AssessmentResponse.model_validate(assessment)
 
 
+@router.get("/assessments", response_model=List[AssessmentResponse])
+async def list_assessments(
+    db: DbSession,
+    current_user: CurrentUser,
+    page_id: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> List[AssessmentResponse]:
+    """List all assessments (admin).
+
+    Optionally filter by page_id or active status.
+    """
+    assessments = await service.list_assessments(
+        db, page_id=page_id, is_active=is_active, limit=limit, offset=offset
+    )
+    return [AssessmentResponse.model_validate(a) for a in assessments]
+
+
 @router.get("/assessments/{assessment_id}", response_model=AssessmentWithQuestions)
 async def get_assessment(
     assessment_id: str,

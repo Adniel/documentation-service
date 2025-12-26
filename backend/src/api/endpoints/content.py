@@ -357,3 +357,139 @@ async def get_pg_history(
     )
 
     return history
+
+
+# =============================================================================
+# LIFECYCLE MANAGEMENT (Sprint 9.5)
+# =============================================================================
+
+# Valid state transitions for document lifecycle
+VALID_TRANSITIONS: dict[PageStatus, list[PageStatus]] = {
+    PageStatus.DRAFT: [PageStatus.IN_REVIEW],
+    PageStatus.IN_REVIEW: [PageStatus.APPROVED, PageStatus.DRAFT],  # Approve or reject
+    PageStatus.APPROVED: [PageStatus.EFFECTIVE, PageStatus.IN_REVIEW],  # Publish or back to review
+    PageStatus.EFFECTIVE: [PageStatus.OBSOLETE],
+    PageStatus.OBSOLETE: [PageStatus.ARCHIVED],
+    PageStatus.ARCHIVED: [],  # Terminal state
+}
+
+
+@router.post("/pages/{page_id}/transition", response_model=PageResponse)
+async def transition_page_status(
+    page_id: str,
+    request: Request,
+    db: DbSession,
+    current_user: CurrentUser,
+    to_status: PageStatus = Query(..., description="Target status for the transition"),
+    reason: str = Query(
+        ...,
+        min_length=10,
+        max_length=1000,
+        description="Reason for the status transition (required for compliance)"
+    ),
+    effective_date: Optional[str] = Query(
+        None, description="Effective date for EFFECTIVE status (ISO format)"
+    ),
+) -> PageResponse:
+    """Transition a page through lifecycle states.
+
+    Valid transitions:
+    - DRAFT -> IN_REVIEW (submit for review)
+    - IN_REVIEW -> APPROVED (approve) or DRAFT (reject)
+    - APPROVED -> EFFECTIVE (publish) or IN_REVIEW (request changes)
+    - EFFECTIVE -> OBSOLETE (retire)
+    - OBSOLETE -> ARCHIVED (archive)
+
+    For compliance with ISO 9001 and 21 CFR Part 11, a reason is required.
+    """
+    page = await get_page(db, page_id)
+    if not page or not page.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found",
+        )
+
+    current_status = PageStatus(page.status)
+
+    # Check if transition is valid
+    allowed_transitions = VALID_TRANSITIONS.get(current_status, [])
+    if to_status not in allowed_transitions:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={
+                "error": "invalid_transition",
+                "message": f"Cannot transition from {current_status.value} to {to_status.value}",
+                "current_status": current_status.value,
+                "allowed_transitions": [s.value for s in allowed_transitions],
+            },
+        )
+
+    # Capture previous status for audit
+    previous_status = page.status
+
+    # Perform transition
+    page.status = to_status.value
+    await db.flush()
+    await db.refresh(page)
+
+    # Audit: Log status transition (21 CFR §11.10(e))
+    audit_service = AuditService(db)
+    await audit_service.log_event(
+        event_type="content.status_changed",
+        actor_id=current_user.id,
+        actor_email=current_user.email,
+        actor_ip=request.client.host if request.client else None,
+        resource_type="page",
+        resource_id=str(page.id),
+        resource_name=page.title,
+        details={
+            "previous_status": previous_status,
+            "new_status": to_status.value,
+            "reason": reason,
+            "effective_date": effective_date,
+        },
+    )
+    await db.commit()
+
+    return PageResponse.model_validate(page)
+
+
+@router.get("/pages/control/dashboard")
+async def get_document_control_dashboard(
+    db: DbSession,
+    current_user: CurrentUser,
+) -> dict:
+    """Get document control dashboard statistics.
+
+    Returns counts by status, upcoming reviews, pending approvals, etc.
+    """
+    from sqlalchemy import select, func
+
+    # Count by status
+    status_counts = {}
+    for status in PageStatus:
+        result = await db.execute(
+            select(func.count()).where(
+                Page.status == status.value,
+                Page.is_active == True,
+            )
+        )
+        status_counts[status.value] = result.scalar() or 0
+
+    # Get total documents
+    total_result = await db.execute(
+        select(func.count()).where(Page.is_active == True)
+    )
+    total_documents = total_result.scalar() or 0
+
+    return {
+        "total_documents": total_documents,
+        "by_status": status_counts,
+        "pending_reviews": status_counts.get("in_review", 0),
+        "effective_documents": status_counts.get("effective", 0),
+        "draft_documents": status_counts.get("draft", 0),
+    }
+
+
+# Need to import Page model
+from src.db.models.page import Page

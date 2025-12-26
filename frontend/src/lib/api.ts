@@ -209,7 +209,42 @@ export const contentApi = {
     const response = await api.get<VersionHistoryEntry[]>(`/content/pages/${id}/history`);
     return response.data;
   },
+
+  // Lifecycle management (Sprint 9.5)
+  transitionStatus: async (
+    id: string,
+    toStatus: PageStatus,
+    reason: string,
+    effectiveDate?: string
+  ): Promise<Page> => {
+    const params: Record<string, string> = {
+      to_status: toStatus,
+      reason,
+    };
+    if (effectiveDate) {
+      params.effective_date = effectiveDate;
+    }
+    const response = await api.post<Page>(`/content/pages/${id}/transition`, null, { params });
+    return response.data;
+  },
+
+  getControlDashboard: async (): Promise<DocumentControlDashboard> => {
+    const response = await api.get<DocumentControlDashboard>('/content/pages/control/dashboard');
+    return response.data;
+  },
 };
+
+// Document control dashboard type
+export interface DocumentControlDashboard {
+  total_documents: number;
+  by_status: Record<string, number>;
+  pending_reviews: number;
+  effective_documents: number;
+  draft_documents: number;
+}
+
+// Page status type
+export type PageStatus = 'draft' | 'in_review' | 'approved' | 'effective' | 'obsolete' | 'archived';
 
 // Change Request (Draft) API
 export const changeRequestApi = {
@@ -717,6 +752,16 @@ export interface ReportExportResponse {
 
 export const learningApi = {
   // Assessments
+  listAssessments: async (params?: {
+    page_id?: string;
+    is_active?: boolean;
+    limit?: number;
+    offset?: number;
+  }): Promise<Assessment[]> => {
+    const response = await api.get<Assessment[]>('/learning/assessments', { params });
+    return response.data;
+  },
+
   createAssessment: async (data: {
     page_id: string;
     title: string;
@@ -783,6 +828,17 @@ export const learningApi = {
 
   deleteQuestion: async (questionId: string): Promise<void> => {
     await api.delete(`/learning/questions/${questionId}`);
+  },
+
+  reorderQuestions: async (
+    assessmentId: string,
+    questionIds: string[]
+  ): Promise<AssessmentQuestion[]> => {
+    const response = await api.put<AssessmentQuestion[]>(
+      `/learning/assessments/${assessmentId}/questions/order`,
+      questionIds
+    );
+    return response.data;
   },
 
   // Assignments

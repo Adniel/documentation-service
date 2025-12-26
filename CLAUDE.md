@@ -77,7 +77,7 @@ This project implements a comprehensive documentation platform as specified in `
 
 ## Sprint Plan Overview
 
-The project is divided into **12 sprints**, each delivering a functional increment:
+The project is divided into **13 sprints**, each delivering a functional increment:
 
 | Sprint | Focus | Deliverable | Compliance |
 |--------|-------|-------------|------------|
@@ -90,6 +90,7 @@ The project is divided into **12 sprints**, each delivering a functional increme
 | 7 | Electronic Signatures | Re-auth, NTP timestamp, content hash, meaning capture | **21 CFR Part 11 §11.50-200** |
 | 8 | Audit Trail | Hash chain, immutability, reason capture, export | **21 CFR §11.10(e)**, ISO 9001 §7.5.3 |
 | 9 | Learning Module Basics | Assessments, manual questions, acknowledgments | Training records |
+| 9.5 | Admin UI | Assessment builder, lifecycle UI, approval matrix, signature config | Usability |
 | 10 | AI Features | Question generation, writing assistant, masking | - |
 | 11 | MCP Integration | Platform as MCP server + client | Service account audit |
 | 12 | Publishing & Polish | Published sites, themes, analytics, optimization | - |

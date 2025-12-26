@@ -117,6 +117,27 @@ async def delete_assessment(db: AsyncSession, assessment: Assessment) -> None:
     await db.flush()
 
 
+async def list_assessments(
+    db: AsyncSession,
+    page_id: Optional[str] = None,
+    is_active: Optional[bool] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> List[Assessment]:
+    """List assessments with optional filters."""
+    query = select(Assessment).options(selectinload(Assessment.questions))
+
+    if page_id:
+        query = query.where(Assessment.page_id == page_id)
+    if is_active is not None:
+        query = query.where(Assessment.is_active == is_active)
+
+    query = query.order_by(Assessment.created_at.desc()).limit(limit).offset(offset)
+
+    result = await db.execute(query)
+    return list(result.scalars().all())
+
+
 # =============================================================================
 # QUESTION OPERATIONS
 # =============================================================================

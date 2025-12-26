@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link, useParams } from 'react-router-dom';
-import { organizationApi, workspaceApi, type Workspace } from '../lib/api';
+import { organizationApi, workspaceApi } from '../lib/api';
+import type { Workspace } from '../types';
 import CreateOrganizationModal from '../components/CreateOrganizationModal';
 import CreateWorkspaceModal from '../components/CreateWorkspaceModal';
 
