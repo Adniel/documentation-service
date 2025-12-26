@@ -26,9 +26,10 @@ import { common, createLowlight } from 'lowlight';
 import { useCallback, useEffect, useState } from 'react';
 
 import { contentApi, spaceApi, learningApi } from '../lib/api';
-import type { Assessment } from '../lib/api';
+import type { Assessment, ElectronicSignature } from '../lib/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { AssessmentBuilder } from '../components/learning';
+import { SignatureDialog, SignatureList } from '../components/signatures';
 import { useEditorShortcuts } from '../hooks/useEditorShortcuts';
 import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { SaveStatusIndicator } from '../components/editor/SaveStatusIndicator';
@@ -80,6 +81,9 @@ export default function EditorPage() {
   const [wordCount, setWordCount] = useState(0);
   const [showAssessmentBuilder, setShowAssessmentBuilder] = useState(false);
   const [newlyCreatedAssessmentId, setNewlyCreatedAssessmentId] = useState<string | null>(null);
+  const [showSignatureDialog, setShowSignatureDialog] = useState(false);
+  const [showSignaturesPanel, setShowSignaturesPanel] = useState(false);
+  const [signatureKey, setSignatureKey] = useState(0); // For refreshing signature list
 
   // Fetch page data
   const {
@@ -384,6 +388,30 @@ export default function EditorPage() {
                   : 'Add Assessment'}
               </button>
               <button
+                onClick={() => setShowSignaturesPanel(!showSignaturesPanel)}
+                className={`px-3 py-2 rounded-md transition text-sm flex items-center gap-1.5 ${
+                  showSignaturesPanel
+                    ? 'text-blue-400 bg-slate-700'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                }`}
+                title="View Signatures"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                Signatures
+              </button>
+              <button
+                onClick={() => setShowSignatureDialog(true)}
+                className="px-3 py-2 text-green-400 hover:text-green-300 hover:bg-slate-700 rounded-md transition text-sm flex items-center gap-1.5"
+                title="Sign this document"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+                Sign
+              </button>
+              <button
                 onClick={handleExport}
                 className="px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-700 rounded-md transition text-sm"
                 title="Export as Markdown (Cmd+Shift+E)"
@@ -520,6 +548,35 @@ export default function EditorPage() {
         </div>
       </div>
 
+      {/* Signatures Panel */}
+      {showSignaturesPanel && (
+        <div className="mt-6 p-4 bg-slate-800 rounded-lg border border-slate-700">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-medium text-white flex items-center gap-2">
+              <svg className="w-4 h-4 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+              </svg>
+              Electronic Signatures
+            </h3>
+            <button
+              onClick={() => setShowSignaturesPanel(false)}
+              className="text-slate-400 hover:text-white"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div className="bg-white rounded-lg p-4">
+            <SignatureList
+              key={signatureKey}
+              pageId={pageId}
+              showVerification
+            />
+          </div>
+        </div>
+      )}
+
       {/* Assessment Builder Modal */}
       {showAssessmentBuilder && activeAssessmentId && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -535,6 +592,19 @@ export default function EditorPage() {
           </div>
         </div>
       )}
+
+      {/* Signature Dialog */}
+      <SignatureDialog
+        isOpen={showSignatureDialog}
+        onClose={() => setShowSignatureDialog(false)}
+        onSigned={(signature) => {
+          setSignatureKey((k) => k + 1); // Refresh signature list
+          setShowSignaturesPanel(true); // Show the signatures panel
+          queryClient.invalidateQueries({ queryKey: ['page', pageId] });
+        }}
+        pageId={pageId}
+        documentTitle={page?.title}
+      />
     </div>
   );
 }
