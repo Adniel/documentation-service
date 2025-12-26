@@ -47,6 +47,12 @@ export function WorkspaceLayout() {
 
           {/* User menu */}
           <div className="flex items-center gap-4">
+            <Link
+              to="/admin"
+              className="px-3 py-1.5 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded transition"
+            >
+              Admin
+            </Link>
             {user && (
               <span className="text-slate-300 text-sm hidden md:block">
                 {user.full_name}

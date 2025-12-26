@@ -5,6 +5,7 @@ import WorkspaceLayout from './components/layout/WorkspaceLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import AdminPage from './pages/AdminPage';
 import EditorPage from './pages/EditorPage';
 import NewPagePage from './pages/NewPagePage';
 import PageHistoryPage from './pages/PageHistoryPage';
@@ -39,6 +40,16 @@ function App() {
         <Route index element={<DashboardPage />} />
         <Route path="org/:orgId" element={<DashboardPage />} />
       </Route>
+
+      {/* Admin page */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute>
+            <AdminPage />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Workspace layout with sidebar */}
       <Route

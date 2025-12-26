@@ -23,6 +23,12 @@ export default function Layout() {
             </div>
 
             <div className="flex items-center space-x-4">
+              <Link
+                to="/admin"
+                className="px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-slate-700 rounded-md transition"
+              >
+                Admin
+              </Link>
               {user && (
                 <span className="text-slate-300 text-sm">
                   {user.full_name}
