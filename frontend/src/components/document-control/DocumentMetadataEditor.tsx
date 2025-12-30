@@ -167,7 +167,7 @@ export function DocumentMetadataEditor({
             <select
               value={formData.owner_id || ''}
               onChange={(e) => setFormData({ ...formData, owner_id: e.target.value || undefined })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="">Select owner...</option>
               {users.map((user) => (
@@ -185,7 +185,7 @@ export function DocumentMetadataEditor({
             <select
               value={formData.custodian_id || ''}
               onChange={(e) => setFormData({ ...formData, custodian_id: e.target.value || undefined })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               <option value="">Select custodian...</option>
               {users.map((user) => (
@@ -217,7 +217,7 @@ export function DocumentMetadataEditor({
                 review_cycle_months: e.target.value ? parseInt(e.target.value) : undefined,
               })}
               placeholder="e.g., 12"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
             <p className="mt-1 text-xs text-gray-500">
               How often this document should be reviewed
@@ -232,7 +232,7 @@ export function DocumentMetadataEditor({
                 ...formData,
                 next_review_date: e.target.value || undefined,
               })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
             <p className="mt-1 text-xs text-gray-500">
               Override next review date (auto-calculated from cycle if empty)
@@ -272,7 +272,7 @@ export function DocumentMetadataEditor({
                   training_validity_months: e.target.value ? parseInt(e.target.value) : undefined,
                 })}
                 placeholder="e.g., 12"
-                className="w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-48 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
               <p className="mt-1 text-xs text-gray-500">
                 How long training acknowledgment remains valid
@@ -291,7 +291,7 @@ export function DocumentMetadataEditor({
             ...formData,
             retention_policy_id: e.target.value || undefined,
           })}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
         >
           <option value="">No retention policy</option>
           {retentionPolicies.map((policy) => (

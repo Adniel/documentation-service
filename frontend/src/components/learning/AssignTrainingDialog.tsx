@@ -186,7 +186,7 @@ export function AssignTrainingDialog({
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
               min={new Date().toISOString().split('T')[0]}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
             <p className="mt-1 text-xs text-gray-500">
               Leave empty for no deadline
@@ -203,7 +203,7 @@ export function AssignTrainingDialog({
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Add any notes for the assignees..."
               rows={2}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
           </div>
 

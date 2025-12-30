@@ -235,7 +235,7 @@ export function QuestionEditor({
                   value={option.text}
                   onChange={(e) => updateOption(index, 'text', e.target.value)}
                   placeholder={`Option ${option.id.toUpperCase()}`}
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 />
                 {(formData.options?.length || 0) > 2 && (
                   <button
@@ -355,7 +355,7 @@ export function QuestionEditor({
           value={formData.explanation || ''}
           onChange={(e) => setFormData({ ...formData, explanation: e.target.value })}
           rows={2}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           placeholder="Optional explanation to show after the user answers..."
         />
       </div>

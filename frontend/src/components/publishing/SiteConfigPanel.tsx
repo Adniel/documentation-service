@@ -207,7 +207,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
                     setSlug(space.slug);
                   }
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
               >
                 <option value="">Select a space...</option>
                 {availableSpaces.map((space) => (
@@ -226,7 +226,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
               <select
                 value={themeId}
                 onChange={(e) => setThemeId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
               >
                 <option value="">Default Theme</option>
                 {themes.map((theme) => (
@@ -247,7 +247,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
                 value={siteTitle}
                 onChange={(e) => setSiteTitle(e.target.value)}
                 placeholder="My Documentation"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
               />
             </div>
 
@@ -265,7 +265,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
                   value={slug}
                   onChange={(e) => setSlug(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                   placeholder="my-docs"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500"
+                  className="flex-1 px-3 py-2 border border-gray-300 rounded-r-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 />
               </div>
             </div>
@@ -280,7 +280,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
                 onChange={(e) => setSiteDescription(e.target.value)}
                 rows={2}
                 placeholder="A brief description of your documentation site..."
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
               />
             </div>
 
@@ -292,7 +292,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
               <select
                 value={visibility}
                 onChange={(e) => setVisibility(e.target.value as SiteVisibility)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
               >
                 <option value="public">Public</option>
                 <option value="authenticated">Authenticated Users Only</option>
@@ -311,7 +311,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
                   value={allowedDomains}
                   onChange={(e) => setAllowedDomains(e.target.value)}
                   placeholder="example.com, company.org"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                 />
               </div>
             )}
@@ -326,7 +326,7 @@ export function SiteConfigPanel({ organizationId, onSiteCreated }: SiteConfigPan
                 value={analyticsId}
                 onChange={(e) => setAnalyticsId(e.target.value)}
                 placeholder="G-XXXXXXXXXX"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
               />
             </div>
           </div>
@@ -487,7 +487,7 @@ function SiteCard({ site, themes, onUpdate, onDelete, isUpdating }: SiteCardProp
                 type="text"
                 defaultValue={site.site_title}
                 onChange={(e) => setEditData({ ...editData, site_title: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900"
               />
             </div>
             <div>
@@ -495,7 +495,7 @@ function SiteCard({ site, themes, onUpdate, onDelete, isUpdating }: SiteCardProp
               <select
                 defaultValue={site.theme_id || ''}
                 onChange={(e) => setEditData({ ...editData, theme_id: e.target.value || undefined })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900"
               >
                 <option value="">Default Theme</option>
                 {themes.map((theme) => (

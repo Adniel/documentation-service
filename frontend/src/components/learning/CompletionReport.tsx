@@ -463,7 +463,7 @@ export function CompletionReport({ onViewPage, onViewUser }: CompletionReportPro
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
             placeholder="e.g., user@example.com or UUID"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
           />
           <button
             onClick={loadUserHistory}
@@ -559,7 +559,7 @@ export function CompletionReport({ onViewPage, onViewUser }: CompletionReportPro
             value={selectedPageId}
             onChange={(e) => setSelectedPageId(e.target.value)}
             placeholder="e.g., First Page or UUID"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
           />
           <button
             onClick={loadPageReport}

@@ -151,7 +151,7 @@ export function RemoteConfigPanel({ organizationId }: RemoteConfigPanelProps) {
             <select
               value={provider}
               onChange={(e) => setProvider(e.target.value as GitProvider)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             >
               {PROVIDERS.map((p) => (
                 <option key={p.value} value={p.value}>
@@ -171,7 +171,7 @@ export function RemoteConfigPanel({ organizationId }: RemoteConfigPanelProps) {
               value={remoteUrl}
               onChange={(e) => setRemoteUrl(e.target.value)}
               placeholder={selectedProvider?.urlHint}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
             <p className="mt-1 text-xs text-gray-500">
               Example: {selectedProvider?.urlHint}
@@ -188,7 +188,7 @@ export function RemoteConfigPanel({ organizationId }: RemoteConfigPanelProps) {
               value={defaultBranch}
               onChange={(e) => setDefaultBranch(e.target.value)}
               placeholder="main"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
           </div>
 
@@ -329,7 +329,7 @@ export function RemoteConfigPanel({ organizationId }: RemoteConfigPanelProps) {
               <select
                 value={credentialType}
                 onChange={(e) => setCredentialType(e.target.value as CredentialType)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               >
                 {CREDENTIAL_TYPES.map((ct) => (
                   <option key={ct.value} value={ct.value}>
@@ -353,7 +353,7 @@ export function RemoteConfigPanel({ organizationId }: RemoteConfigPanelProps) {
                     : 'ssh-ed25519 AAAA...'
                 }
                 rows={credentialType === 'https_token' ? 1 : 4}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm bg-white text-gray-900"
               />
               <p className="mt-1 text-xs text-gray-500">
                 {credentialType === 'https_token'
@@ -372,7 +372,7 @@ export function RemoteConfigPanel({ organizationId }: RemoteConfigPanelProps) {
                 value={credentialLabel}
                 onChange={(e) => setCredentialLabel(e.target.value)}
                 placeholder="e.g., GitHub Deploy Key"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
             </div>
 

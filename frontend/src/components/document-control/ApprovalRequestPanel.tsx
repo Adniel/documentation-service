@@ -92,7 +92,7 @@ export function ApprovalRequestPanel({
           <select
             value={selectedMatrixId}
             onChange={(e) => setSelectedMatrixId(e.target.value)}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           >
             <option value="">Auto-select based on document type</option>
             {matrices.map((matrix) => (
@@ -149,7 +149,7 @@ export function ApprovalRequestPanel({
           onChange={(e) => setComment(e.target.value)}
           placeholder="Add any notes for the approvers..."
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
         />
       </div>
 

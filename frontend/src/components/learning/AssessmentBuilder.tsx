@@ -321,7 +321,7 @@ export function AssessmentBuilder({
               type="text"
               value={formData.title}
               onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               placeholder="e.g., SOP-001 Training Quiz"
             />
           </div>
@@ -332,7 +332,7 @@ export function AssessmentBuilder({
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               placeholder="Brief description of what this assessment covers..."
             />
           </div>
@@ -350,7 +350,7 @@ export function AssessmentBuilder({
                 onChange={(e) =>
                   setFormData({ ...formData, passing_score: parseInt(e.target.value) || 0 })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
               <p className="mt-1 text-xs text-gray-500">Default: 80%</p>
             </div>
@@ -369,7 +369,7 @@ export function AssessmentBuilder({
                     max_attempts: e.target.value ? parseInt(e.target.value) : null,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="Unlimited"
               />
               <p className="mt-1 text-xs text-gray-500">Leave empty for unlimited</p>
@@ -389,7 +389,7 @@ export function AssessmentBuilder({
                     time_limit_minutes: e.target.value ? parseInt(e.target.value) : null,
                   })
                 }
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                 placeholder="No limit"
               />
               <p className="mt-1 text-xs text-gray-500">Leave empty for no time limit</p>

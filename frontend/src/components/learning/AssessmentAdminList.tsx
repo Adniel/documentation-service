@@ -158,7 +158,7 @@ export function AssessmentAdminList({ onEdit, onCreate }: AssessmentAdminListPro
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search assessments..."
-            className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full max-w-sm px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <div className="flex items-center gap-2">
@@ -166,7 +166,7 @@ export function AssessmentAdminList({ onEdit, onCreate }: AssessmentAdminListPro
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as 'all' | 'active' | 'inactive')}
-            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           >
             <option value="all">All</option>
             <option value="active">Active only</option>

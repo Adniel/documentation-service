@@ -181,7 +181,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                     value={formData.name}
                     onChange={(e) => updateField('name', e.target.value)}
                     placeholder="My Custom Theme"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                     required
                   />
                 </div>
@@ -194,7 +194,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                     value={formData.description}
                     onChange={(e) => updateField('description', e.target.value)}
                     placeholder="A brief description of this theme"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
                   />
                 </div>
               </div>
@@ -293,7 +293,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.heading_font}
                         onChange={(e) => updateField('heading_font', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="Inter, sans-serif">Inter</option>
                         <option value="system-ui, sans-serif">System UI</option>
@@ -309,7 +309,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.body_font}
                         onChange={(e) => updateField('body_font', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="Inter, sans-serif">Inter</option>
                         <option value="system-ui, sans-serif">System UI</option>
@@ -325,7 +325,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.code_font}
                         onChange={(e) => updateField('code_font', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="'JetBrains Mono', monospace">JetBrains Mono</option>
                         <option value="'Fira Code', monospace">Fira Code</option>
@@ -341,7 +341,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.base_font_size}
                         onChange={(e) => updateField('base_font_size', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="14px">14px (Small)</option>
                         <option value="16px">16px (Normal)</option>
@@ -384,7 +384,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.sidebar_position}
                         onChange={(e) => updateField('sidebar_position', e.target.value as SidebarPosition)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="left">Left</option>
                         <option value="right">Right</option>
@@ -398,7 +398,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.content_width}
                         onChange={(e) => updateField('content_width', e.target.value as ContentWidth)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="narrow">Narrow (640px)</option>
                         <option value="medium">Medium (768px)</option>
@@ -413,7 +413,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       <select
                         value={formData.header_height}
                         onChange={(e) => updateField('header_height', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       >
                         <option value="48px">Compact (48px)</option>
                         <option value="64px">Normal (64px)</option>
@@ -443,7 +443,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                         value={formData.logo_url || ''}
                         onChange={(e) => updateField('logo_url', e.target.value)}
                         placeholder="https://example.com/logo.png"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       />
                     </div>
                     <div>
@@ -455,7 +455,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                         value={formData.favicon_url || ''}
                         onChange={(e) => updateField('favicon_url', e.target.value)}
                         placeholder="https://example.com/favicon.ico"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-white text-gray-900"
                       />
                     </div>
                   </div>
@@ -475,7 +475,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       onChange={(e) => updateField('custom_css', e.target.value)}
                       rows={10}
                       placeholder="/* Add custom CSS here */"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm bg-white text-gray-900"
                     />
                     <p className="mt-1 text-xs text-gray-500">
                       CSS will be injected into the published site. Use with caution.
@@ -490,7 +490,7 @@ export function ThemeEditor({ organizationId, themeId, onClose, onSaved }: Theme
                       onChange={(e) => updateField('custom_head_html', e.target.value)}
                       rows={5}
                       placeholder="<!-- Add custom head elements here -->"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md font-mono text-sm bg-white text-gray-900"
                     />
                     <p className="mt-1 text-xs text-gray-500">
                       HTML will be added to the &lt;head&gt; section. Use for external fonts, scripts, etc.
@@ -547,7 +547,7 @@ function ColorInput({ label, value, onChange }: ColorInputProps) {
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder="#000000"
-          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+          className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm bg-white text-gray-900"
         />
       </div>
     </div>

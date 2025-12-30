@@ -122,7 +122,7 @@ export function SupersessionDialog({
               placeholder="Search documents..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 mb-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
             <div className="border border-gray-300 rounded-md max-h-48 overflow-y-auto">
               {availablePages.length === 0 ? (
@@ -169,7 +169,7 @@ export function SupersessionDialog({
               onChange={(e) => setReason(e.target.value)}
               placeholder="Explain why this document is being superseded..."
               rows={3}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
             />
             <p className="mt-1 text-xs text-gray-500">
               Minimum 10 characters required

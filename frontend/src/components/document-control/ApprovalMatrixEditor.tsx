@@ -217,7 +217,7 @@ export function ApprovalMatrixEditor({
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 placeholder="e.g., Standard SOP Approval"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
             </div>
 
@@ -228,7 +228,7 @@ export function ApprovalMatrixEditor({
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Describe when this approval matrix should be used..."
                 rows={2}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
               />
             </div>
           </div>
@@ -349,7 +349,7 @@ export function ApprovalMatrixEditor({
                         value={step.name}
                         onChange={(e) => updateStep(index, { name: e.target.value })}
                         placeholder="e.g., Manager Review"
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
 
@@ -361,7 +361,7 @@ export function ApprovalMatrixEditor({
                           approver_role: e.target.value || undefined,
                           approver_user_id: e.target.value === 'specific_user' ? step.approver_user_id : undefined,
                         })}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
                       >
                         <option value="">Select role...</option>
                         {ROLES.map((role) => (
@@ -378,7 +378,7 @@ export function ApprovalMatrixEditor({
                         <select
                           value={step.approver_user_id || ''}
                           onChange={(e) => updateStep(index, { approver_user_id: e.target.value || undefined })}
-                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
                         >
                           <option value="">Select user...</option>
                           {users.map((user) => (
@@ -398,7 +398,7 @@ export function ApprovalMatrixEditor({
                         max={10}
                         value={step.min_approvers || 1}
                         onChange={(e) => updateStep(index, { min_approvers: parseInt(e.target.value) || 1 })}
-                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white text-gray-900"
                       />
                     </div>
 

@@ -193,7 +193,7 @@ export function QuestionBank({
             placeholder="Search questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
 
@@ -201,7 +201,7 @@ export function QuestionBank({
         <select
           value={filterType}
           onChange={(e) => setFilterType(e.target.value as QuestionType | 'all')}
-          className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
         >
           <option value="all">All Types</option>
           <option value="multiple_choice">Multiple Choice</option>
