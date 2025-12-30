@@ -1,7 +1,7 @@
 """Admin UI completion - organization settings fields.
 
-Revision ID: 010
-Revises: 009
+Revision ID: 010_admin_ui_completion
+Revises: 009_publishing
 Create Date: 2025-12-30
 
 Sprint B: Admin UI Completion
@@ -14,8 +14,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = "010"
-down_revision = "009"
+revision = "010_admin_ui_completion"
+down_revision = "009_publishing"
 branch_labels = None
 depends_on = None
 
