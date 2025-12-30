@@ -122,13 +122,13 @@ export function UserManagementPanel({ organizationId }: UserManagementPanelProps
             placeholder="Search members..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
           />
         </div>
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value as MemberRole | 'all')}
-          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
+          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
         >
           <option value="all">All Roles</option>
           {(Object.keys(ROLE_LABELS) as MemberRole[]).map((role) => (
@@ -196,7 +196,7 @@ export function UserManagementPanel({ organizationId }: UserManagementPanelProps
                       <select
                         value={member.role}
                         onChange={(e) => handleRoleChange(member.user_id, e.target.value as MemberRole)}
-                        className="px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+                        className="px-2 py-1 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm text-gray-900"
                         disabled={member.role === 'owner'}
                       >
                         {(Object.keys(ROLE_LABELS) as MemberRole[])

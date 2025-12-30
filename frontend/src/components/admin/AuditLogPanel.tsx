@@ -180,7 +180,7 @@ export function AuditLogPanel({ organizationId }: AuditLogPanelProps) {
           <select
             value={eventType}
             onChange={(e) => { setEventType(e.target.value); setPage(0); }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm text-gray-900"
           >
             <option value="">All Types</option>
             {Object.entries(EVENT_TYPE_LABELS).map(([value, label]) => (
@@ -194,7 +194,7 @@ export function AuditLogPanel({ organizationId }: AuditLogPanelProps) {
             type="date"
             value={startDate}
             onChange={(e) => { setStartDate(e.target.value); setPage(0); }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white text-gray-900"
           />
         </div>
         <div className="min-w-[180px]">
@@ -203,7 +203,7 @@ export function AuditLogPanel({ organizationId }: AuditLogPanelProps) {
             type="date"
             value={endDate}
             onChange={(e) => { setEndDate(e.target.value); setPage(0); }}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm bg-white text-gray-900"
           />
         </div>
         <div className="flex items-end gap-2">
