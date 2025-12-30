@@ -562,8 +562,14 @@ class AuditService:
         end_date: Optional[datetime] = None,
         limit: int = 100,
         offset: int = 0,
+        organization_id: Optional[str] = None,
     ) -> AuditEventListResponse:
-        """Query audit events with filters."""
+        """Query audit events with filters.
+
+        Args:
+            organization_id: If provided, filter to events that have organization_id
+                            in their details, or belong to resources in that organization.
+        """
         # Build query conditions
         conditions = []
         if event_type:
@@ -578,6 +584,22 @@ class AuditService:
             conditions.append(AuditEvent.timestamp >= start_date)
         if end_date:
             conditions.append(AuditEvent.timestamp <= end_date)
+        if organization_id:
+            # Filter events that have organization_id in their details
+            # or where the resource type is organization
+            from sqlalchemy import or_, cast, String
+            from sqlalchemy.dialects.postgresql import JSONB
+            conditions.append(
+                or_(
+                    # Events directly on the organization
+                    and_(
+                        AuditEvent.resource_type == "organization",
+                        AuditEvent.resource_id == organization_id,
+                    ),
+                    # Events with organization_id in details
+                    AuditEvent.details["organization_id"].astext == organization_id,
+                )
+            )
 
         # Count total
         count_query = select(func.count(AuditEvent.id))
@@ -644,51 +666,69 @@ class AuditService:
             last_event=last_event,
         )
 
-    async def get_stats(self) -> AuditStatsResponse:
-        """Get audit trail statistics."""
+    async def get_stats(self, organization_id: Optional[str] = None) -> AuditStatsResponse:
+        """Get audit trail statistics.
+
+        Args:
+            organization_id: If provided, get stats for events in that organization only.
+        """
+        # Build base filter for organization
+        org_filter = None
+        if organization_id:
+            from sqlalchemy import or_
+            org_filter = or_(
+                and_(
+                    AuditEvent.resource_type == "organization",
+                    AuditEvent.resource_id == organization_id,
+                ),
+                AuditEvent.details["organization_id"].astext == organization_id,
+            )
+
         # Total events
-        total_result = await self.db.execute(select(func.count(AuditEvent.id)))
+        total_query = select(func.count(AuditEvent.id))
+        if org_filter is not None:
+            total_query = total_query.where(org_filter)
+        total_result = await self.db.execute(total_query)
         total_events = total_result.scalar() or 0
 
         # Events by type
-        type_result = await self.db.execute(
-            select(AuditEvent.event_type, func.count(AuditEvent.id))
-            .group_by(AuditEvent.event_type)
-        )
+        type_query = select(AuditEvent.event_type, func.count(AuditEvent.id)).group_by(AuditEvent.event_type)
+        if org_filter is not None:
+            type_query = type_query.where(org_filter)
+        type_result = await self.db.execute(type_query)
         events_by_type = {row[0]: row[1] for row in type_result}
 
         # Events today
         today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        today_result = await self.db.execute(
-            select(func.count(AuditEvent.id))
-            .where(AuditEvent.timestamp >= today_start)
-        )
+        today_query = select(func.count(AuditEvent.id)).where(AuditEvent.timestamp >= today_start)
+        if org_filter is not None:
+            today_query = today_query.where(org_filter)
+        today_result = await self.db.execute(today_query)
         events_today = today_result.scalar() or 0
 
         # Events this week
         week_start = today_start - timedelta(days=today_start.weekday())
-        week_result = await self.db.execute(
-            select(func.count(AuditEvent.id))
-            .where(AuditEvent.timestamp >= week_start)
-        )
+        week_query = select(func.count(AuditEvent.id)).where(AuditEvent.timestamp >= week_start)
+        if org_filter is not None:
+            week_query = week_query.where(org_filter)
+        week_result = await self.db.execute(week_query)
         events_this_week = week_result.scalar() or 0
 
         # Unique actors
-        actors_result = await self.db.execute(
-            select(func.count(func.distinct(AuditEvent.actor_id)))
-        )
+        actors_query = select(func.count(func.distinct(AuditEvent.actor_id)))
+        if org_filter is not None:
+            actors_query = actors_query.where(org_filter)
+        actors_result = await self.db.execute(actors_query)
         unique_actors = actors_result.scalar() or 0
 
-        # Chain head
+        # Chain head (global, not filtered)
         chain_head_hash = await self._get_previous_hash()
 
         # Date range
-        range_result = await self.db.execute(
-            select(
-                func.min(AuditEvent.timestamp),
-                func.max(AuditEvent.timestamp),
-            )
-        )
+        range_query = select(func.min(AuditEvent.timestamp), func.max(AuditEvent.timestamp))
+        if org_filter is not None:
+            range_query = range_query.where(org_filter)
+        range_result = await self.db.execute(range_query)
         date_range = range_result.one_or_none()
         oldest_event = date_range[0] if date_range else None
         newest_event = date_range[1] if date_range else None
@@ -713,6 +753,7 @@ class AuditService:
         start_from_id: Optional[str] = None,
         end_at_id: Optional[str] = None,
         max_events: int = 10000,
+        organization_id: Optional[str] = None,
     ) -> ChainVerificationResponse:
         """Verify hash chain integrity for tamper detection.
 
@@ -723,6 +764,7 @@ class AuditService:
             start_from_id: Start verification from this event (default: oldest)
             end_at_id: End verification at this event (default: newest)
             max_events: Maximum events to verify in one request
+            organization_id: If provided, verify only events for that organization
 
         Returns:
             ChainVerificationResponse with verification results
@@ -730,18 +772,33 @@ class AuditService:
         start_time = time.time()
 
         # Build query for events to verify
-        query = select(AuditEvent).order_by(AuditEvent.timestamp)
+        conditions = []
 
         if start_from_id:
             start_event = await self.get_event_by_id(start_from_id)
             if start_event:
-                query = query.where(AuditEvent.timestamp >= start_event.timestamp)
+                conditions.append(AuditEvent.timestamp >= start_event.timestamp)
 
         if end_at_id:
             end_event = await self.get_event_by_id(end_at_id)
             if end_event:
-                query = query.where(AuditEvent.timestamp <= end_event.timestamp)
+                conditions.append(AuditEvent.timestamp <= end_event.timestamp)
 
+        if organization_id:
+            from sqlalchemy import or_
+            conditions.append(
+                or_(
+                    and_(
+                        AuditEvent.resource_type == "organization",
+                        AuditEvent.resource_id == organization_id,
+                    ),
+                    AuditEvent.details["organization_id"].astext == organization_id,
+                )
+            )
+
+        query = select(AuditEvent).order_by(AuditEvent.timestamp)
+        if conditions:
+            query = query.where(and_(*conditions))
         query = query.limit(max_events)
 
         result = await self.db.execute(query)

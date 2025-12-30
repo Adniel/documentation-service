@@ -19,12 +19,13 @@ import {
 } from '../components/document-control';
 import { RemoteConfigPanel, SyncStatusBadge, SyncHistoryList } from '../components/git';
 import { SiteConfigPanel, ThemeEditor } from '../components/publishing';
+import { UserManagementPanel, OrganizationSettingsPanel, AuditLogPanel } from '../components/admin';
 import { organizationApi, publishingApi, type Assessment } from '../lib/api';
 
-type AdminTab = 'assessments' | 'document-control' | 'approvals' | 'training-reports' | 'git-remote' | 'publishing';
+type AdminTab = 'users' | 'organization' | 'audit' | 'assessments' | 'document-control' | 'approvals' | 'training-reports' | 'git-remote' | 'publishing';
 
 export default function AdminPage() {
-  const [activeTab, setActiveTab] = useState<AdminTab>('assessments');
+  const [activeTab, setActiveTab] = useState<AdminTab>('users');
   const [editingAssessment, setEditingAssessment] = useState<Assessment | null>(null);
   const [creatingAssessment, setCreatingAssessment] = useState(false);
   const [showMatrixEditor, setShowMatrixEditor] = useState(false);
@@ -46,6 +47,33 @@ export default function AdminPage() {
   }, [selectedOrgId, organizations]);
 
   const tabs: { id: AdminTab; label: string; icon: React.ReactNode }[] = [
+    {
+      id: 'users',
+      label: 'Users',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+        </svg>
+      ),
+    },
+    {
+      id: 'organization',
+      label: 'Organization',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+        </svg>
+      ),
+    },
+    {
+      id: 'audit',
+      label: 'Audit Trail',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+    },
     {
       id: 'assessments',
       label: 'Assessments',
@@ -224,6 +252,132 @@ export default function AdminPage() {
         )}
 
         {activeTab === 'training-reports' && <CompletionReport />}
+
+        {activeTab === 'users' && (
+          <div className="space-y-6">
+            {/* Organization Selector */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Organization:
+                </label>
+                <select
+                  value={selectedOrgId}
+                  onChange={(e) => setSelectedOrgId(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                >
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {selectedOrgId ? (
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900">Members</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Manage users and their roles within your organization
+                  </p>
+                </div>
+                <div className="p-6">
+                  <UserManagementPanel organizationId={selectedOrgId} />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                <p>No organizations available. Please create an organization first.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'organization' && (
+          <div className="space-y-6">
+            {/* Organization Selector */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Organization:
+                </label>
+                <select
+                  value={selectedOrgId}
+                  onChange={(e) => setSelectedOrgId(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                >
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {selectedOrgId ? (
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900">Organization Settings</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Configure your organization&apos;s preferences and defaults
+                  </p>
+                </div>
+                <div className="p-6">
+                  <OrganizationSettingsPanel organizationId={selectedOrgId} />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                <p>No organizations available. Please create an organization first.</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'audit' && (
+          <div className="space-y-6">
+            {/* Organization Selector */}
+            <div className="bg-white rounded-lg shadow p-4">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Organization:
+                </label>
+                <select
+                  value={selectedOrgId}
+                  onChange={(e) => setSelectedOrgId(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
+                >
+                  {organizations.map((org) => (
+                    <option key={org.id} value={org.id}>
+                      {org.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {selectedOrgId ? (
+              <div className="bg-white rounded-lg shadow">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-medium text-gray-900">Audit Trail</h2>
+                  <p className="mt-1 text-sm text-gray-500">
+                    View and export audit events for compliance reporting
+                  </p>
+                </div>
+                <div className="p-6">
+                  <AuditLogPanel organizationId={selectedOrgId} />
+                </div>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+                <p>No organizations available. Please create an organization first.</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {activeTab === 'git-remote' && (
           <div className="space-y-6">

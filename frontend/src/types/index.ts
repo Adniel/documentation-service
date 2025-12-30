@@ -219,3 +219,104 @@ export interface DiffResult {
   deletions: number;
   is_binary: boolean;
 }
+
+// Organization member types (Sprint B)
+export type MemberRole = 'viewer' | 'reviewer' | 'editor' | 'admin' | 'owner';
+
+export interface OrganizationMember {
+  user_id: string;
+  organization_id: string;
+  role: MemberRole;
+  user_email: string;
+  user_full_name: string;
+  user_avatar_url: string | null;
+  is_active: boolean;
+  joined_at: string | null;
+}
+
+export interface OrganizationMemberListResponse {
+  members: OrganizationMember[];
+  total: number;
+}
+
+export interface InviteMemberRequest {
+  email: string;
+  role: MemberRole;
+}
+
+export interface UpdateMemberRoleRequest {
+  role: MemberRole;
+}
+
+// Organization settings types (Sprint B)
+export interface OrganizationSettingsUpdate {
+  name?: string;
+  description?: string;
+  logo_url?: string;
+  doc_numbering_enabled?: boolean;
+  default_classification?: number;
+}
+
+// Audit event types (Sprint B)
+export interface AuditEvent {
+  id: string;
+  event_type: string;
+  timestamp: string;
+  actor_id: string | null;
+  actor_email: string | null;
+  actor_ip: string | null;
+  resource_type: string | null;
+  resource_id: string | null;
+  resource_name: string | null;
+  details: Record<string, unknown> | null;
+  event_hash: string;
+  previous_hash: string | null;
+}
+
+export interface AuditEventListResponse {
+  events: AuditEvent[];
+  total: number;
+  limit: number;
+  offset: number;
+  has_more: boolean;
+}
+
+export interface AuditQueryParams {
+  event_type?: string;
+  actor_id?: string;
+  resource_type?: string;
+  start_date?: string;
+  end_date?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface AuditExportParams {
+  format: 'csv' | 'json';
+  start_date: string;
+  end_date: string;
+  event_types?: string[];
+  include_details?: boolean;
+}
+
+export interface AuditStats {
+  total_events: number;
+  events_by_type: Record<string, number>;
+  events_today: number;
+  events_this_week: number;
+  unique_actors: number;
+  chain_head_hash: string | null;
+  oldest_event: string | null;
+  newest_event: string | null;
+}
+
+export interface ChainVerificationResponse {
+  is_valid: boolean;
+  total_events: number;
+  verified_events: number;
+  first_invalid_event_id: string | null;
+  first_invalid_reason: string | null;
+  verification_timestamp: string;
+  chain_head_hash: string | null;
+  verification_duration_ms: number;
+}

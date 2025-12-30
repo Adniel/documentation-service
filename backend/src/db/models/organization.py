@@ -62,6 +62,10 @@ class Organization(Base, UUIDMixin, TimestampMixin):
     )  # synced, pending, error, conflict
     git_webhook_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
+    # Organization Settings (Sprint B)
+    doc_numbering_enabled: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
+    default_classification: Mapped[int] = mapped_column(default=0, nullable=False)  # 0=public
+
     # Relationships
     owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id])
     members: Mapped[list["User"]] = relationship(

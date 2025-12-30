@@ -2,6 +2,8 @@
 
 Provides endpoints for querying, verifying, and exporting audit events.
 
+Sprint B: Added organization-scoped audit endpoints for org admins.
+
 Compliance:
 - 21 CFR §11.10(e) - Audit trail reviewability and export
 - ISO 9001 §7.5.3 - Control of documented information
@@ -12,6 +14,7 @@ from typing import Optional
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response
+from sqlalchemy import select, and_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, get_current_user
@@ -27,8 +30,42 @@ from src.modules.audit.audit_schemas import (
     ResourceAuditHistoryResponse,
     AuditExportRequest,
 )
+from src.db.models.organization import Organization, organization_members
+from src.modules.content.service import get_organization
 
 router = APIRouter(prefix="/audit", tags=["audit"])
+
+
+async def _require_org_admin(db: AsyncSession, org_id: str, current_user) -> None:
+    """Check if user is admin/owner of the organization."""
+    if current_user.is_superuser:
+        return
+
+    org = await get_organization(db, org_id)
+    if not org:
+        raise HTTPException(status_code=404, detail="Organization not found")
+
+    # Owner always has admin access
+    if org.owner_id == current_user.id:
+        return
+
+    # Check member role
+    result = await db.execute(
+        select(organization_members.c.role).where(
+            and_(
+                organization_members.c.organization_id == org_id,
+                organization_members.c.user_id == current_user.id,
+            )
+        )
+    )
+    row = result.first()
+    role = row[0] if row else None
+
+    if role not in ("admin", "owner"):
+        raise HTTPException(
+            status_code=403,
+            detail="Admin or owner role required for this action"
+        )
 
 
 # -----------------------------------------------------------------------------
@@ -324,3 +361,135 @@ async def _export_json(events: list, request: AuditExportRequest) -> Response:
             "X-Report-Hash": report_hash,
         }
     )
+
+
+# -----------------------------------------------------------------------------
+# Organization-Scoped Audit Endpoints (Sprint B)
+# -----------------------------------------------------------------------------
+
+@router.get("/organizations/{org_id}/events", response_model=AuditEventListResponse)
+async def list_org_audit_events(
+    org_id: str,
+    event_type: Optional[str] = Query(None, description="Filter by event type"),
+    actor_id: Optional[UUID] = Query(None, description="Filter by actor ID"),
+    resource_type: Optional[str] = Query(None, description="Filter by resource type"),
+    start_date: Optional[datetime] = Query(None, description="Filter events after this date"),
+    end_date: Optional[datetime] = Query(None, description="Filter events before this date"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of events to return"),
+    offset: int = Query(0, ge=0, description="Offset for pagination"),
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """List audit events for a specific organization.
+
+    Requires admin role in the organization (not superuser).
+    Returns paginated list of audit events filtered by organization.
+    """
+    await _require_org_admin(db, org_id, current_user)
+
+    audit_service = AuditService(db)
+
+    # Query events with organization filter
+    # The audit service will filter by events that have the org_id in their details
+    # or belong to resources within the organization
+    return await audit_service.query_events(
+        event_type=event_type,
+        actor_id=str(actor_id) if actor_id else None,
+        resource_type=resource_type,
+        resource_id=None,
+        start_date=start_date,
+        end_date=end_date,
+        limit=limit,
+        offset=offset,
+        organization_id=org_id,  # Filter by organization
+    )
+
+
+@router.get("/organizations/{org_id}/stats", response_model=AuditStatsResponse)
+async def get_org_audit_stats(
+    org_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Get audit trail statistics for an organization.
+
+    Requires admin role in the organization.
+    """
+    await _require_org_admin(db, org_id, current_user)
+
+    audit_service = AuditService(db)
+    return await audit_service.get_stats(organization_id=org_id)
+
+
+@router.post("/organizations/{org_id}/verify", response_model=ChainVerificationResponse)
+async def verify_org_audit_chain(
+    org_id: str,
+    request: ChainVerificationRequest = None,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Verify audit trail hash chain integrity for an organization.
+
+    Requires admin role in the organization.
+    Walks the audit chain for the organization's events and verifies integrity.
+    """
+    await _require_org_admin(db, org_id, current_user)
+
+    if request is None:
+        request = ChainVerificationRequest()
+
+    audit_service = AuditService(db)
+    return await audit_service.verify_chain_integrity(
+        start_from_id=str(request.start_from_id) if request.start_from_id else None,
+        end_at_id=str(request.end_at_id) if request.end_at_id else None,
+        max_events=request.max_events,
+        organization_id=org_id,
+    )
+
+
+@router.post("/organizations/{org_id}/export")
+async def export_org_audit_trail(
+    org_id: str,
+    request: AuditExportRequest,
+    db: AsyncSession = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Export audit trail for an organization.
+
+    Requires admin role in the organization.
+    Generates export in specified format (CSV, JSON) for the given date range.
+    """
+    await _require_org_admin(db, org_id, current_user)
+
+    audit_service = AuditService(db)
+
+    # Query events for export with organization filter
+    events_response = await audit_service.query_events(
+        event_type=request.event_types[0] if request.event_types and len(request.event_types) == 1 else None,
+        actor_id=str(request.actor_id) if request.actor_id else None,
+        resource_type=request.resource_type,
+        resource_id=str(request.resource_id) if request.resource_id else None,
+        start_date=request.start_date,
+        end_date=request.end_date,
+        limit=10000,
+        offset=0,
+        organization_id=org_id,
+    )
+
+    events = events_response.events
+
+    # Filter by multiple event types if specified
+    if request.event_types and len(request.event_types) > 1:
+        events = [e for e in events if e.event_type in request.event_types]
+
+    if request.format == "csv":
+        return await _export_csv(events, request)
+    elif request.format == "json":
+        return await _export_json(events, request)
+    elif request.format == "pdf":
+        raise HTTPException(
+            status_code=501,
+            detail="PDF export not yet implemented. Use CSV or JSON format."
+        )
+    else:
+        raise HTTPException(status_code=400, detail=f"Unknown format: {request.format}")

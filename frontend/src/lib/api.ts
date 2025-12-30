@@ -19,6 +19,17 @@ import type {
   ChangeRequestComment,
   CommentCreate,
   DiffResult,
+  OrganizationMember,
+  OrganizationMemberListResponse,
+  InviteMemberRequest,
+  UpdateMemberRoleRequest,
+  OrganizationSettingsUpdate,
+  AuditEvent,
+  AuditEventListResponse,
+  AuditQueryParams,
+  AuditExportParams,
+  AuditStats,
+  ChainVerificationResponse,
 } from '../types';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -122,6 +133,32 @@ export const organizationApi = {
   update: async (id: string, data: Partial<Organization>): Promise<Organization> => {
     const response = await api.patch<Organization>(`/organizations/${id}`, data);
     return response.data;
+  },
+
+  // Settings
+  updateSettings: async (id: string, data: OrganizationSettingsUpdate): Promise<Organization> => {
+    const response = await api.patch<Organization>(`/organizations/${id}/settings`, data);
+    return response.data;
+  },
+
+  // Member management (Sprint B)
+  listMembers: async (orgId: string): Promise<OrganizationMemberListResponse> => {
+    const response = await api.get<OrganizationMemberListResponse>(`/organizations/${orgId}/members`);
+    return response.data;
+  },
+
+  addMember: async (orgId: string, data: InviteMemberRequest): Promise<OrganizationMember> => {
+    const response = await api.post<OrganizationMember>(`/organizations/${orgId}/members`, data);
+    return response.data;
+  },
+
+  updateMemberRole: async (orgId: string, userId: string, data: UpdateMemberRoleRequest): Promise<OrganizationMember> => {
+    const response = await api.patch<OrganizationMember>(`/organizations/${orgId}/members/${userId}`, data);
+    return response.data;
+  },
+
+  removeMember: async (orgId: string, userId: string): Promise<void> => {
+    await api.delete(`/organizations/${orgId}/members/${userId}`);
   },
 };
 
@@ -1659,6 +1696,60 @@ export const gitApi = {
 
   regenerateWebhookSecret: async (orgId: string): Promise<WebhookRegenerateResponse> => {
     const response = await api.post<WebhookRegenerateResponse>(`/git/organizations/${orgId}/webhook/regenerate`);
+    return response.data;
+  },
+};
+
+// Audit API (Sprint B)
+export const auditApi = {
+  // Organization-scoped audit (for org admins)
+  listOrgEvents: async (orgId: string, params: AuditQueryParams = {}): Promise<AuditEventListResponse> => {
+    const response = await api.get<AuditEventListResponse>(`/audit/organizations/${orgId}/events`, { params });
+    return response.data;
+  },
+
+  getOrgStats: async (orgId: string): Promise<AuditStats> => {
+    const response = await api.get<AuditStats>(`/audit/organizations/${orgId}/stats`);
+    return response.data;
+  },
+
+  verifyOrgChain: async (orgId: string, maxEvents = 10000): Promise<ChainVerificationResponse> => {
+    const response = await api.post<ChainVerificationResponse>(`/audit/organizations/${orgId}/verify`, { max_events: maxEvents });
+    return response.data;
+  },
+
+  exportOrgAudit: async (orgId: string, params: AuditExportParams): Promise<Blob> => {
+    const response = await api.post(`/audit/organizations/${orgId}/export`, params, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Global audit (for superusers)
+  listEvents: async (params: AuditQueryParams = {}): Promise<AuditEventListResponse> => {
+    const response = await api.get<AuditEventListResponse>('/audit/events', { params });
+    return response.data;
+  },
+
+  getEvent: async (eventId: string): Promise<AuditEvent> => {
+    const response = await api.get<AuditEvent>(`/audit/events/${eventId}`);
+    return response.data;
+  },
+
+  getStats: async (): Promise<AuditStats> => {
+    const response = await api.get<AuditStats>('/audit/stats');
+    return response.data;
+  },
+
+  verifyChain: async (maxEvents = 10000): Promise<ChainVerificationResponse> => {
+    const response = await api.post<ChainVerificationResponse>('/audit/verify', { max_events: maxEvents });
+    return response.data;
+  },
+
+  exportAudit: async (params: AuditExportParams): Promise<Blob> => {
+    const response = await api.post('/audit/export', params, {
+      responseType: 'blob',
+    });
     return response.data;
   },
 };

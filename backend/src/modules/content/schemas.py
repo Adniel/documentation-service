@@ -220,3 +220,66 @@ class PageSummary(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+# Organization Member schemas
+class MemberRole(str, Enum):
+    """Member roles within an organization."""
+
+    VIEWER = "viewer"
+    REVIEWER = "reviewer"
+    EDITOR = "editor"
+    ADMIN = "admin"
+    OWNER = "owner"
+
+
+class OrganizationMemberBase(BaseModel):
+    """Base organization member schema."""
+
+    role: MemberRole = MemberRole.VIEWER
+
+
+class OrganizationMemberCreate(OrganizationMemberBase):
+    """Create/invite a member to organization."""
+
+    email: str = Field(..., description="Email of user to invite")
+
+
+class OrganizationMemberUpdate(BaseModel):
+    """Update member role."""
+
+    role: MemberRole
+
+
+class OrganizationMemberResponse(BaseModel):
+    """Organization member response."""
+
+    user_id: str
+    organization_id: str
+    role: str
+    user_email: str
+    user_full_name: str
+    user_avatar_url: str | None = None
+    is_active: bool
+    joined_at: datetime | None = None
+
+    class Config:
+        from_attributes = True
+
+
+class OrganizationMemberListResponse(BaseModel):
+    """List of organization members."""
+
+    members: list[OrganizationMemberResponse]
+    total: int
+
+
+# Organization Settings schemas
+class OrganizationSettingsUpdate(BaseModel):
+    """Update organization settings."""
+
+    name: str | None = Field(None, min_length=1, max_length=255)
+    description: str | None = None
+    logo_url: str | None = None
+    doc_numbering_enabled: bool | None = None
+    default_classification: int | None = Field(None, ge=0, le=3)
