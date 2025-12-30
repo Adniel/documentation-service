@@ -487,6 +487,426 @@ class GitService:
         except (KeyError, pygit2.GitError):
             return False
 
+    # =========================================================================
+    # REMOTE OPERATIONS (Sprint 13)
+    # =========================================================================
+
+    def add_remote(
+        self,
+        org_slug: str,
+        remote_url: str,
+        remote_name: str = "origin",
+    ) -> bool:
+        """Add a remote to the repository.
+
+        Args:
+            org_slug: Organization slug
+            remote_url: Remote URL (SSH or HTTPS)
+            remote_name: Name for the remote (default: origin)
+
+        Returns:
+            True if successful
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return False
+
+        try:
+            # Remove existing remote if present
+            if remote_name in [r.name for r in repo.remotes]:
+                repo.remotes.delete(remote_name)
+
+            repo.remotes.create(remote_name, remote_url)
+            return True
+        except pygit2.GitError:
+            return False
+
+    def remove_remote(
+        self,
+        org_slug: str,
+        remote_name: str = "origin",
+    ) -> bool:
+        """Remove a remote from the repository.
+
+        Args:
+            org_slug: Organization slug
+            remote_name: Name of the remote to remove
+
+        Returns:
+            True if successful
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return False
+
+        try:
+            if remote_name in [r.name for r in repo.remotes]:
+                repo.remotes.delete(remote_name)
+                return True
+            return False
+        except pygit2.GitError:
+            return False
+
+    def get_remote_info(
+        self,
+        org_slug: str,
+        remote_name: str = "origin",
+    ) -> dict[str, Any] | None:
+        """Get information about a remote.
+
+        Args:
+            org_slug: Organization slug
+            remote_name: Name of the remote
+
+        Returns:
+            Dict with remote info or None if not found
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return None
+
+        try:
+            remote = repo.remotes[remote_name]
+            return {
+                "name": remote.name,
+                "url": remote.url,
+                "push_url": remote.push_url or remote.url,
+            }
+        except KeyError:
+            return None
+
+    def _create_ssh_callbacks(
+        self,
+        ssh_key: str | None = None,
+    ) -> pygit2.RemoteCallbacks | None:
+        """Create callbacks for SSH authentication.
+
+        Args:
+            ssh_key: SSH private key content (PEM format)
+
+        Returns:
+            RemoteCallbacks or None
+        """
+        if not ssh_key:
+            return None
+
+        # Write key to temporary file for pygit2
+        import tempfile
+
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".key") as f:
+            f.write(ssh_key)
+            key_path = f.name
+
+        try:
+            # Set proper permissions
+            os.chmod(key_path, 0o600)
+
+            # For SSH keys, we need to use the keypair callback
+            keypair = pygit2.Keypair(
+                username="git",
+                pubkey=None,  # Public key will be derived
+                privkey=key_path,
+                passphrase="",
+            )
+            callbacks = pygit2.RemoteCallbacks(credentials=keypair)
+            return callbacks
+        finally:
+            # Clean up temp file
+            try:
+                os.unlink(key_path)
+            except OSError:
+                pass
+
+    def _create_https_callbacks(
+        self,
+        token: str | None = None,
+        username: str = "oauth2",
+    ) -> pygit2.RemoteCallbacks | None:
+        """Create callbacks for HTTPS token authentication.
+
+        Args:
+            token: Personal access token
+            username: Username (default: oauth2 for tokens)
+
+        Returns:
+            RemoteCallbacks or None
+        """
+        if not token:
+            return None
+
+        userpass = pygit2.UserPass(username, token)
+        callbacks = pygit2.RemoteCallbacks(credentials=userpass)
+        return callbacks
+
+    def fetch_remote(
+        self,
+        org_slug: str,
+        credential: str | None = None,
+        credential_type: str = "https_token",
+        remote_name: str = "origin",
+    ) -> dict[str, Any]:
+        """Fetch from remote repository.
+
+        Args:
+            org_slug: Organization slug
+            credential: Credential value (token or SSH key)
+            credential_type: Type of credential (https_token, ssh_key)
+            remote_name: Name of the remote
+
+        Returns:
+            Dict with fetch results
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return {"success": False, "error": "Repository not found"}
+
+        try:
+            remote = repo.remotes[remote_name]
+
+            # Create appropriate callbacks
+            if credential_type == "ssh_key":
+                callbacks = self._create_ssh_callbacks(credential)
+            else:
+                callbacks = self._create_https_callbacks(credential)
+
+            # Fetch
+            transfer_progress = remote.fetch(callbacks=callbacks)
+
+            return {
+                "success": True,
+                "received_objects": transfer_progress.received_objects if transfer_progress else 0,
+                "total_objects": transfer_progress.total_objects if transfer_progress else 0,
+            }
+        except pygit2.GitError as e:
+            return {"success": False, "error": str(e)}
+
+    def push_to_remote(
+        self,
+        org_slug: str,
+        branch: str,
+        credential: str | None = None,
+        credential_type: str = "https_token",
+        remote_name: str = "origin",
+        force: bool = False,
+    ) -> dict[str, Any]:
+        """Push branch to remote repository.
+
+        Args:
+            org_slug: Organization slug
+            branch: Branch name to push
+            credential: Credential value
+            credential_type: Type of credential
+            remote_name: Name of the remote
+            force: Force push (use with caution)
+
+        Returns:
+            Dict with push results
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return {"success": False, "error": "Repository not found"}
+
+        try:
+            remote = repo.remotes[remote_name]
+
+            # Create callbacks
+            if credential_type == "ssh_key":
+                callbacks = self._create_ssh_callbacks(credential)
+            else:
+                callbacks = self._create_https_callbacks(credential)
+
+            # Get current commit SHA before push
+            try:
+                local_branch = repo.branches[branch]
+                commit_sha = str(local_branch.peel().id)
+            except KeyError:
+                return {"success": False, "error": f"Branch not found: {branch}"}
+
+            # Build refspec
+            refspec = f"+refs/heads/{branch}:refs/heads/{branch}" if force else f"refs/heads/{branch}:refs/heads/{branch}"
+
+            # Push
+            remote.push([refspec], callbacks=callbacks)
+
+            return {
+                "success": True,
+                "branch": branch,
+                "commit_sha": commit_sha,
+                "forced": force,
+            }
+        except pygit2.GitError as e:
+            return {"success": False, "error": str(e)}
+
+    def pull_from_remote(
+        self,
+        org_slug: str,
+        branch: str,
+        credential: str | None = None,
+        credential_type: str = "https_token",
+        remote_name: str = "origin",
+        author_name: str = "Documentation Service",
+        author_email: str = "system@docservice.local",
+    ) -> dict[str, Any]:
+        """Pull changes from remote repository.
+
+        Args:
+            org_slug: Organization slug
+            branch: Branch name to pull
+            credential: Credential value
+            credential_type: Type of credential
+            remote_name: Name of the remote
+            author_name: Author for merge commit if needed
+            author_email: Author email for merge commit
+
+        Returns:
+            Dict with pull results
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return {"success": False, "error": "Repository not found"}
+
+        try:
+            # First fetch
+            fetch_result = self.fetch_remote(
+                org_slug, credential, credential_type, remote_name
+            )
+            if not fetch_result.get("success"):
+                return fetch_result
+
+            # Get remote branch ref
+            remote_ref = f"{remote_name}/{branch}"
+            try:
+                remote_branch = repo.lookup_reference(f"refs/remotes/{remote_ref}")
+                remote_commit = repo.get(remote_branch.target)
+            except KeyError:
+                return {"success": False, "error": f"Remote branch not found: {remote_ref}"}
+
+            # Get local branch
+            try:
+                local_branch = repo.branches[branch]
+                local_commit = local_branch.peel()
+            except KeyError:
+                return {"success": False, "error": f"Local branch not found: {branch}"}
+
+            # Check merge analysis
+            merge_result, _ = repo.merge_analysis(remote_commit.id)
+
+            if merge_result & pygit2.GIT_MERGE_ANALYSIS_UP_TO_DATE:
+                return {"success": True, "message": "Already up to date", "updated": False}
+
+            if merge_result & pygit2.GIT_MERGE_ANALYSIS_FASTFORWARD:
+                # Fast-forward merge
+                local_branch.set_target(remote_commit.id)
+                repo.checkout_head()
+                return {
+                    "success": True,
+                    "message": "Fast-forward merge",
+                    "updated": True,
+                    "commit_sha": str(remote_commit.id),
+                }
+
+            # Need actual merge
+            repo.merge(remote_commit.id)
+
+            if repo.index.conflicts:
+                conflict_files = [c[1].path for c in repo.index.conflicts if c[1]]
+                repo.state_cleanup()
+                return {
+                    "success": False,
+                    "error": "Merge conflicts detected",
+                    "conflict_files": conflict_files,
+                }
+
+            # Create merge commit
+            sig = self._get_signature(author_name, author_email)
+            tree = repo.index.write_tree()
+            merge_message = f"Merge {remote_ref} into {branch}"
+            commit_id = repo.create_commit(
+                "HEAD",
+                sig,
+                sig,
+                merge_message,
+                tree,
+                [local_commit.id, remote_commit.id],
+            )
+            repo.state_cleanup()
+
+            return {
+                "success": True,
+                "message": "Merge completed",
+                "updated": True,
+                "commit_sha": str(commit_id),
+            }
+
+        except pygit2.GitError as e:
+            return {"success": False, "error": str(e)}
+
+    def get_divergence(
+        self,
+        org_slug: str,
+        branch: str,
+        remote_name: str = "origin",
+    ) -> dict[str, Any]:
+        """Check how local and remote branches have diverged.
+
+        Args:
+            org_slug: Organization slug
+            branch: Branch name
+            remote_name: Name of the remote
+
+        Returns:
+            Dict with divergence info (ahead, behind counts)
+        """
+        repo = self.get_repo(org_slug)
+        if not repo:
+            return {"ahead": 0, "behind": 0, "error": "Repository not found"}
+
+        try:
+            # Get local branch commit
+            local_branch = repo.branches[branch]
+            local_commit = local_branch.peel()
+
+            # Get remote branch commit
+            remote_ref = f"refs/remotes/{remote_name}/{branch}"
+            try:
+                remote_branch = repo.lookup_reference(remote_ref)
+                remote_commit = repo.get(remote_branch.target)
+            except KeyError:
+                return {"ahead": 0, "behind": 0, "diverged": False, "remote_exists": False}
+
+            # Count commits ahead and behind
+            ahead, behind = repo.ahead_behind(local_commit.id, remote_commit.id)
+
+            return {
+                "ahead": ahead,
+                "behind": behind,
+                "diverged": ahead > 0 and behind > 0,
+                "remote_exists": True,
+                "local_sha": str(local_commit.id),
+                "remote_sha": str(remote_commit.id),
+            }
+
+        except pygit2.GitError as e:
+            return {"ahead": 0, "behind": 0, "error": str(e)}
+
+    def get_head_sha(self, org_slug: str) -> str | None:
+        """Get current HEAD commit SHA.
+
+        Args:
+            org_slug: Organization slug
+
+        Returns:
+            SHA string or None
+        """
+        repo = self.get_repo(org_slug)
+        if not repo or repo.head_is_unborn:
+            return None
+
+        try:
+            return str(repo.head.peel().id)
+        except pygit2.GitError:
+            return None
+
 
 # Singleton instance
 _git_service: GitService | None = None

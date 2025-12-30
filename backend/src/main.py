@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.router import api_router
+from src.api.public_site import router as public_site_router
 from src.config import get_settings
 
 
@@ -48,6 +49,9 @@ def create_app() -> FastAPI:
 
     # Include API router
     application.include_router(api_router, prefix=settings.api_prefix)
+
+    # Include public site router for published documentation
+    application.include_router(public_site_router, prefix="/s")
 
     @application.get("/health")
     async def health_check() -> dict[str, str]:

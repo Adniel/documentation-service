@@ -68,6 +68,30 @@ from src.db.models.quiz_attempt import (
 )
 from src.db.models.training_acknowledgment import TrainingAcknowledgment
 
+# Sprint 13: Git Remote Support
+from src.db.models.git_credential import (
+    GitCredential,
+    CredentialType,
+)
+from src.db.models.git_sync_event import (
+    GitSyncEvent,
+    SyncEventType,
+    SyncDirection,
+    SyncStatus,
+)
+
+# Sprint A: Publishing
+from src.db.models.theme import (
+    Theme,
+    SidebarPosition,
+    ContentWidth,
+)
+from src.db.models.published_site import (
+    PublishedSite,
+    SiteStatus,
+    SiteVisibility,
+)
+
 __all__ = [
     # Core models
     "User",
@@ -116,4 +140,18 @@ __all__ = [
     "QuizAttempt",
     "AttemptStatus",
     "TrainingAcknowledgment",
+    # Sprint 13: Git Remote Support
+    "GitCredential",
+    "CredentialType",
+    "GitSyncEvent",
+    "SyncEventType",
+    "SyncDirection",
+    "SyncStatus",
+    # Sprint A: Publishing
+    "Theme",
+    "SidebarPosition",
+    "ContentWidth",
+    "PublishedSite",
+    "SiteStatus",
+    "SiteVisibility",
 ]

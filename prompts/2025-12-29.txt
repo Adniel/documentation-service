@@ -1,0 +1,24 @@
+Using appropriate sub agents:
+  - the diataxis framework specify 4 types of content: tutorial, how-to, reference, explanation. Currently the implementation suggests that each space is defined as any of these types. This is not
+  correct. A space can be a section of a product having multiple pages, and is not limited to contain content of a single diataxis type. A space can contain multiple pages where each page can be tagged
+  with any of the diataxis types. Further more, the documentation types should be a configurable list per organization, where the diataxis types are the default types. Admin users may add additional
+  types as needed. The read view of a documentation for an organization should have filtering options for the available types. Plan and document a sprint to revise the content model to support this
+  change.
+  - the metadata is only stored in the database. While it is efficient for the system to store the metadata in the database and use it for the UI, it is not correct to store the metadata in the
+  database only. To be portable, the metadata should be stored in the database and in the file system, where each document has its adjoining metadata. Any organizational metadata, that does not
+  directly connect to a document should be exportable to JSON and possble to include in the git repository. This would make the documentation portable and not dependant on the system itself if the
+  documentation needs to be used or moved to another system. Plan and document a sprint to revise the metadata model to support this change.
+  - If there is not yet functional requirements that focus on the documentation of the system it self, plan and document (or update any existing plan aiming for this) a sprint to create comprehensive
+  documentation for this system that follows the diataxis framework. The documentation should be added as a fixture that can be imported as an organization in this documentation system, with relevant
+  workspaces and spaces defined, so that different types of users can have access to relevant parts of the documentation.
+  - the UI is currently focusing on the creation of content and managing the system, which is good for the internal documentataion work. When documentation is created and users should consume that
+  content there must be a view that is easy to understand and navigate. (Here is the gitbook view of the documentation for the organization Sensorbee https://sensorbeeab.gitbook.io/sensorbeeab-docs as
+  a sample of how it could look). In addition to relevant featurs such as filtering and searching, and interfacing the documentation to different features (Gitbook has a context menu for each page with
+  options like Copy page: Copy page as Markdown for LLMs, View as Markdown: View this page as plain text, Open in ChatGPT: Ask ChatGPT about this page, Open in, Claude: Ask Claude about this page,
+  Connect with MCP: Copy the MCP Server URL, Connect to VSCode: Install MCP Server on VSCode), the readers view should have features for for accessibility (such as screen reader support, keyboard
+  navigation, change to dark mode, change to light mode, change to high contrast mode, use dyslectic fonts, spead reader support such as for example [https://leto.axym.org/], rabbit-hole links as
+  sampled here: [https://mystmd.org/guide] etc). Plan and document a sprint to revise the UI with this additional functionality.
+  - create a Product Requirements Document (as described for example here https://www.prd-studio.com/learn/what-is-a-prd-complete-guide) for the currently implemented and planned functionality (both in
+  existing sprints and in the infomation provided in this prompt above) for this system.
+
+  

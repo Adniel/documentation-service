@@ -190,7 +190,7 @@ async def update_pg(
             org = await get_organization(db, workspace.organization_id)
             git_service = get_git_service()
             try:
-                current_content = git_service.get_file_content(
+                current_content = git_service.read_file(
                     org_slug=org.slug,
                     workspace_slug=workspace.slug,
                     space_slug=page.space.slug,

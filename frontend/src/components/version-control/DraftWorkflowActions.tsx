@@ -34,7 +34,9 @@ export function DraftWorkflowActions({
   const [pendingAction, setPendingAction] = useState<(() => Promise<void>) | null>(null);
 
   const isAuthor = draft.author_id === currentUserId;
-  const isReviewer = draft.reviewer_id === currentUserId;
+  // isReviewer available for future use in role-based actions
+  const _isReviewer = draft.reviewer_id === currentUserId;
+  void _isReviewer;
 
   const executeAction = async (action: () => Promise<void>) => {
     setLoading(true);

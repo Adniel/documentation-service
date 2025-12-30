@@ -16,4 +16,6 @@ export { CompletionReport } from './CompletionReport';
 // Admin components (Sprint 9.5)
 export { AssessmentBuilder } from './AssessmentBuilder';
 export { QuestionEditor } from './QuestionEditor';
+export { QuestionBank } from './QuestionBank';
 export { AssessmentAdminList } from './AssessmentAdminList';
+export { AssignTrainingDialog } from './AssignTrainingDialog';

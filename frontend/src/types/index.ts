@@ -174,6 +174,8 @@ export interface ChangeRequestUpdate {
 
 export interface ChangeRequestSubmit {
   reviewer_id?: string;
+  approval_matrix_id?: string;
+  comment?: string;
 }
 
 export interface ChangeRequestReview {

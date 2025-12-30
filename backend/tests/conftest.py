@@ -364,3 +364,153 @@ def patch_git_service(mock_git_service):
 
     # Restore original
     git_module._git_service = original_service
+
+
+# ============================================================
+# Integration test fixtures for creating test data
+# ============================================================
+
+@pytest.fixture
+async def test_user(db_session: AsyncSession) -> dict[str, Any]:
+    """Create a test user in the database and return user data."""
+    from src.db.models import User
+    import uuid
+
+    user_id = str(uuid.uuid4())
+    # Use unique email per test to avoid conflicts
+    email = f"test_{user_id[:8]}@example.com"
+    user = User(
+        id=user_id,
+        email=email,
+        full_name="Test User",
+        hashed_password=hash_password("TestPass123!"),
+        is_active=True,
+        email_verified=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+    }
+
+
+@pytest.fixture
+async def auth_headers(test_user: dict[str, Any]) -> dict[str, str]:
+    """Create authentication headers for the test user."""
+    token = create_access_token(user_id=test_user["id"])
+    return {"Authorization": f"Bearer {token}"}
+
+
+@pytest.fixture
+async def test_organization(
+    db_session: AsyncSession,
+    test_user: dict[str, Any],
+) -> dict[str, Any]:
+    """Create a test organization in the database."""
+    from src.db.models import Organization, User
+    from src.db.models.organization import organization_members
+    from sqlalchemy import insert
+    import uuid
+
+    org_id = str(uuid.uuid4())
+    # Use unique slug per test to avoid conflicts
+    slug = f"test-org-{org_id[:8]}"
+
+    # Get the user object
+    user = await db_session.get(User, test_user["id"])
+
+    org = Organization(
+        id=org_id,
+        name="Test Organization",
+        slug=slug,
+        description="A test organization",
+        owner_id=test_user["id"],
+    )
+    db_session.add(org)
+    await db_session.flush()
+
+    # Add creator as owner in the association table
+    await db_session.execute(
+        insert(organization_members).values(
+            organization_id=org_id,
+            user_id=test_user["id"],
+            role="owner",
+        )
+    )
+    await db_session.commit()
+    await db_session.refresh(org)
+
+    return {
+        "id": org.id,
+        "name": org.name,
+        "slug": org.slug,
+    }
+
+
+@pytest.fixture
+async def test_workspace(
+    db_session: AsyncSession,
+    test_organization: dict[str, Any],
+    test_user: dict[str, Any],
+) -> dict[str, Any]:
+    """Create a test workspace in the database."""
+    from src.db.models import Workspace
+    import uuid
+
+    workspace_id = str(uuid.uuid4())
+    # Use unique slug per test to avoid conflicts
+    slug = f"test-workspace-{workspace_id[:8]}"
+    workspace = Workspace(
+        id=workspace_id,
+        organization_id=test_organization["id"],
+        name="Test Workspace",
+        slug=slug,
+        description="A test workspace",
+        is_public=False,
+    )
+    db_session.add(workspace)
+    await db_session.commit()
+    await db_session.refresh(workspace)
+
+    return {
+        "id": workspace.id,
+        "name": workspace.name,
+        "slug": workspace.slug,
+        "organization_id": test_organization["id"],
+    }
+
+
+@pytest.fixture
+async def test_space(
+    db_session: AsyncSession,
+    test_workspace: dict[str, Any],
+) -> dict[str, Any]:
+    """Create a test space in the database."""
+    from src.db.models import Space
+    import uuid
+
+    space_id = str(uuid.uuid4())
+    # Use unique slug per test to avoid conflicts
+    slug = f"test-space-{space_id[:8]}"
+    space = Space(
+        id=space_id,
+        workspace_id=test_workspace["id"],
+        name="Test Space",
+        slug=slug,
+        description="A test space",
+        diataxis_type="tutorial",
+    )
+    db_session.add(space)
+    await db_session.commit()
+    await db_session.refresh(space)
+
+    return {
+        "id": space.id,
+        "name": space.name,
+        "slug": space.slug,
+        "workspace_id": test_workspace["id"],
+    }

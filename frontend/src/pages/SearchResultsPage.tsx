@@ -4,11 +4,9 @@
  * Full-page search results with filtering and pagination.
  */
 
-import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { searchApi, type SearchResult } from '../lib/api';
-import { Breadcrumbs } from '../components/navigation/Breadcrumbs';
 import { clsx } from 'clsx';
 
 type DiátaxisType = 'tutorial' | 'how_to' | 'reference' | 'explanation' | '';

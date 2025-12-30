@@ -106,6 +106,7 @@ class ApprovalMatrixCreate(BaseModel):
     """Request to create an approval matrix."""
     name: str = Field(..., min_length=1, max_length=100)
     description: Optional[str] = None
+    organization_id: str = Field(..., description="Organization ID for this matrix")
     applicable_document_types: list[str] = Field(default_factory=list)
     steps: list[dict] = Field(..., min_length=1)
     require_sequential: bool = True
@@ -716,15 +717,15 @@ async def create_approval_matrix(
     db: AsyncSession = Depends(get_db),
 ):
     """Create a new approval matrix."""
-    if not current_user.organization_id:
-        raise HTTPException(status_code=400, detail="User has no organization")
+    if not data.organization_id:
+        raise HTTPException(status_code=400, detail="Organization ID is required")
 
     if not current_user.is_superuser:
         raise HTTPException(status_code=403, detail="Admin access required")
 
     approval_service = ApprovalService(db)
     matrix = await approval_service.create_approval_matrix(
-        organization_id=current_user.organization_id,
+        organization_id=data.organization_id,
         name=data.name,
         steps=data.steps,
         description=data.description,

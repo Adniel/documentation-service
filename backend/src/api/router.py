@@ -17,6 +17,9 @@ from src.api.endpoints import (
     signatures,
     audit,
     learning,
+    git,
+    webhooks,
+    publishing,
 )
 
 api_router = APIRouter()
@@ -73,4 +76,19 @@ api_router.include_router(
 # Learning module routes (Sprint 9)
 api_router.include_router(
     learning.router, prefix="/learning", tags=["Learning"]
+)
+
+# Git remote routes (Sprint 13)
+api_router.include_router(
+    git.router, prefix="/git", tags=["Git Remote"]
+)
+
+# Webhook routes (Sprint 13)
+api_router.include_router(
+    webhooks.router, prefix="/webhooks", tags=["Webhooks"]
+)
+
+# Publishing routes (Sprint A)
+api_router.include_router(
+    publishing.router, prefix="/publishing", tags=["Publishing"]
 )

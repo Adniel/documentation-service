@@ -108,19 +108,8 @@ export function CompletionReport({ onViewPage, onViewUser }: CompletionReportPro
     }
   }, [activeTab, loadCompletionData, loadOverdueData]);
 
-  // Load user history when selected
-  useEffect(() => {
-    if (activeTab === 'user' && selectedUserId) {
-      loadUserHistory();
-    }
-  }, [activeTab, selectedUserId, loadUserHistory]);
-
-  // Load page report when selected
-  useEffect(() => {
-    if (activeTab === 'page' && selectedPageId) {
-      loadPageReport();
-    }
-  }, [activeTab, selectedPageId, loadPageReport]);
+  // Note: User history and page reports are loaded manually via the "Load" button
+  // to avoid triggering API calls on every keystroke
 
   // Handle export
   const handleExport = useCallback(
@@ -466,14 +455,14 @@ export function CompletionReport({ onViewPage, onViewUser }: CompletionReportPro
     <div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Enter User ID to view training history
+          Enter user email or ID to view training history
         </label>
         <div className="flex gap-2">
           <input
             type="text"
             value={selectedUserId}
             onChange={(e) => setSelectedUserId(e.target.value)}
-            placeholder="User ID"
+            placeholder="e.g., user@example.com or UUID"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
           <button
@@ -562,14 +551,14 @@ export function CompletionReport({ onViewPage, onViewUser }: CompletionReportPro
     <div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Enter Page ID to view training report
+          Enter page title, slug, or ID to view training report
         </label>
         <div className="flex gap-2">
           <input
             type="text"
             value={selectedPageId}
             onChange={(e) => setSelectedPageId(e.target.value)}
-            placeholder="Page ID"
+            placeholder="e.g., First Page or UUID"
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
           />
           <button

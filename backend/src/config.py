@@ -75,8 +75,21 @@ class Settings(BaseSettings):
     meilisearch_url: str = "http://localhost:7700"
     meilisearch_api_key: str = "docservice_dev_key"
 
-    # Git
+    # Git (local repository)
     git_repos_path: str = "/tmp/docservice/repos"
+
+    # Git Remote Settings (Sprint 13)
+    git_credential_encryption_key: str = ""  # Required for credential storage, base64-encoded 32-byte key
+    git_sync_timeout_seconds: int = 120
+    git_webhook_rate_limit: int = 10  # requests per minute per organization
+    git_default_sync_strategy: str = "push_only"  # push_only, pull_only, bidirectional
+    git_allowed_providers: str = "github,gitlab,gitea,custom"
+
+    @computed_field
+    @property
+    def git_allowed_providers_list(self) -> list[str]:
+        """Get allowed Git providers as a list."""
+        return [p.strip() for p in self.git_allowed_providers.split(",") if p.strip()]
 
     # CORS - stored as comma-separated string, parsed via property
     cors_origins_str: str = Field(

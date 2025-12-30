@@ -26,7 +26,6 @@ import { common, createLowlight } from 'lowlight';
 import { useCallback, useEffect, useState } from 'react';
 
 import { contentApi, spaceApi, learningApi } from '../lib/api';
-import type { Assessment, ElectronicSignature } from '../lib/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { AssessmentBuilder } from '../components/learning';
 import { SignatureDialog, SignatureList } from '../components/signatures';
@@ -106,7 +105,7 @@ export default function EditorPage() {
   // Fetch assessment for this page (if any)
   const { data: assessment, refetch: refetchAssessment } = useQuery({
     queryKey: ['page-assessment', pageId],
-    queryFn: () => learningApi.getPageAssessment(pageId!),
+    queryFn: () => learningApi.getAssessmentForPage(pageId!),
     enabled: !!pageId,
     retry: false, // Don't retry on 404
   });
@@ -597,7 +596,7 @@ export default function EditorPage() {
       <SignatureDialog
         isOpen={showSignatureDialog}
         onClose={() => setShowSignatureDialog(false)}
-        onSigned={(signature) => {
+        onSigned={() => {
           setSignatureKey((k) => k + 1); // Refresh signature list
           setShowSignaturesPanel(true); // Show the signatures panel
           queryClient.invalidateQueries({ queryKey: ['page', pageId] });

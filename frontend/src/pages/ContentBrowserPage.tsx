@@ -344,7 +344,8 @@ interface PageListItemProps {
   showSpace?: boolean;
 }
 
-function PageListItem({ page, showSpace = true }: PageListItemProps) {
+function PageListItem({ page, showSpace: _showSpace = true }: PageListItemProps) {
+  void _showSpace; // Available for future use
   const statusClass = STATUS_COLORS[page.status] || STATUS_COLORS.draft;
 
   return (

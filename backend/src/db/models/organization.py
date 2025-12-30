@@ -1,8 +1,9 @@
 """Organization model - top level of content hierarchy."""
 
+from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Boolean, ForeignKey, String, Text, Table, Column
+from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text, Table, Column
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -42,8 +43,24 @@ class Organization(Base, UUIDMixin, TimestampMixin):
         UUID(as_uuid=False), ForeignKey("users.id"), nullable=False
     )
 
-    # Git repository path for this organization
+    # Git repository path for this organization (local)
     git_repo_path: Mapped[str | None] = mapped_column(String(500), nullable=True)
+
+    # Git Remote Configuration (Sprint 13)
+    git_remote_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    git_remote_provider: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # github, gitlab, gitea, custom
+    git_sync_enabled: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
+    git_sync_strategy: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # push_only, pull_only, bidirectional
+    git_default_branch: Mapped[str] = mapped_column(String(100), default="main", nullable=False)
+    git_last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    git_sync_status: Mapped[str | None] = mapped_column(
+        String(50), nullable=True
+    )  # synced, pending, error, conflict
+    git_webhook_secret: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Relationships
     owner: Mapped["User"] = relationship("User", foreign_keys=[owner_id])

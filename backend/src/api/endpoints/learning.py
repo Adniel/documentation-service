@@ -789,22 +789,38 @@ async def get_user_training_history(
     db: DbSession = None,
     current_user: CurrentUser = None,
 ) -> UserTrainingHistory:
-    """Get training history for a specific user."""
-    from sqlalchemy import select, func
+    """Get training history for a specific user.
+
+    The user_id parameter can be either a UUID or an email address.
+    """
+    from sqlalchemy import select, func, or_
     from src.db.models.user import User
     from src.db.models.learning_assignment import LearningAssignment
     from src.db.models.training_acknowledgment import TrainingAcknowledgment
 
-    # Get user info
-    user_result = await db.execute(
-        select(User).where(User.id == user_id)
-    )
+    # Try to find user by UUID or email
+    # Check if it looks like a UUID (contains dashes and is 36 chars)
+    is_uuid = len(user_id) == 36 and user_id.count('-') == 4
+
+    if is_uuid:
+        user_result = await db.execute(
+            select(User).where(User.id == user_id)
+        )
+    else:
+        # Search by email (case-insensitive)
+        user_result = await db.execute(
+            select(User).where(func.lower(User.email) == func.lower(user_id))
+        )
+
     user = user_result.scalar_one_or_none()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="User not found",
+            detail=f"User not found: {user_id}",
         )
+
+    # Use the actual user ID for subsequent queries
+    actual_user_id = str(user.id)
 
     # Count assignments by status
     status_query = (
@@ -812,7 +828,7 @@ async def get_user_training_history(
             LearningAssignment.status,
             func.count(LearningAssignment.id).label("count"),
         )
-        .where(LearningAssignment.user_id == user_id)
+        .where(LearningAssignment.user_id == actual_user_id)
         .group_by(LearningAssignment.status)
     )
     status_result = await db.execute(status_query)
@@ -827,7 +843,7 @@ async def get_user_training_history(
     # Get acknowledgments
     ack_result = await db.execute(
         select(TrainingAcknowledgment)
-        .where(TrainingAcknowledgment.user_id == user_id)
+        .where(TrainingAcknowledgment.user_id == actual_user_id)
         .order_by(TrainingAcknowledgment.acknowledged_at.desc())
     )
     acknowledgments = list(ack_result.scalars().all())
@@ -850,25 +866,45 @@ async def get_page_training_report(
     db: DbSession = None,
     current_user: CurrentUser = None,
 ) -> PageTrainingReport:
-    """Get training report for a specific page."""
-    from sqlalchemy import select, func
+    """Get training report for a specific page.
+
+    The page_id parameter can be a UUID, page slug, or page title.
+    """
+    from sqlalchemy import select, func, or_
     from src.db.models.page import Page
     from src.db.models.assessment import Assessment
     from src.db.models.learning_assignment import LearningAssignment
 
-    # Get page info
-    page_result = await db.execute(
-        select(Page).where(Page.id == page_id)
-    )
+    # Try to find page by UUID, slug, or title
+    is_uuid = len(page_id) == 36 and page_id.count('-') == 4
+
+    if is_uuid:
+        page_result = await db.execute(
+            select(Page).where(Page.id == page_id)
+        )
+    else:
+        # Search by slug or title (case-insensitive)
+        page_result = await db.execute(
+            select(Page).where(
+                or_(
+                    Page.slug == page_id,
+                    func.lower(Page.title) == func.lower(page_id)
+                )
+            )
+        )
+
     page = page_result.scalar_one_or_none()
     if not page:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Page not found",
+            detail=f"Page not found: {page_id}",
         )
 
+    # Use the actual page ID for subsequent queries
+    actual_page_id = str(page.id)
+
     # Check for assessment
-    assessment = await service.get_assessment_for_page(db, page_id)
+    assessment = await service.get_assessment_for_page(db, actual_page_id)
     has_assessment = assessment is not None
     assessment_id = str(assessment.id) if assessment else None
 
@@ -878,7 +914,7 @@ async def get_page_training_report(
             LearningAssignment.status,
             func.count(LearningAssignment.id).label("count"),
         )
-        .where(LearningAssignment.page_id == page_id)
+        .where(LearningAssignment.page_id == actual_page_id)
         .group_by(LearningAssignment.status)
     )
     status_result = await db.execute(status_query)
@@ -891,7 +927,7 @@ async def get_page_training_report(
     # Get all assignments for this page
     assignments, _ = await service.list_assignments(
         db,
-        page_id=page_id,
+        page_id=actual_page_id,
         limit=500,
     )
 

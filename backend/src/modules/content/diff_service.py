@@ -75,16 +75,26 @@ def _content_to_lines(file_data: dict[str, Any] | None) -> list[str]:
     diffs instead of comparing raw JSON.
 
     Args:
-        file_data: Full file data from git (contains title and content)
+        file_data: Either a TipTap document {type: "doc", content: [...]}
+                   or a Git file wrapper {title, content} where content is TipTap
     """
     if file_data is None:
         return []
 
-    # Extract content from file data structure {title, content}
-    # Handle both old format (direct content) and new format (wrapped)
-    if isinstance(file_data, dict):
-        content = file_data.get("content", file_data)
+    if not isinstance(file_data, dict):
+        return []
+
+    # Determine if this is a TipTap document or a Git file wrapper
+    # TipTap document: {"type": "doc", "content": [...]}
+    # Git file wrapper: {"title": "...", "content": {...TipTap doc...}}
+    if "type" in file_data:
+        # This is already a TipTap document - use it directly
+        content = file_data
+    elif "content" in file_data and isinstance(file_data["content"], dict):
+        # This is Git wrapper format - extract the TipTap document
+        content = file_data["content"]
     else:
+        # Unknown format
         return []
 
     # Convert TipTap JSON to Markdown for readable diffs

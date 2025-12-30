@@ -1011,6 +1011,162 @@ export const learningApi = {
   },
 };
 
+// Document Control types
+export interface DocumentMetadata {
+  document_number?: string;
+  version?: string;
+  status?: string;
+  owner_id?: string;
+  owner_name?: string;
+  custodian_id?: string;
+  custodian_name?: string;
+  effective_date?: string;
+  next_review_date?: string;
+  review_cycle_months?: number;
+  requires_training?: boolean;
+  training_validity_months?: number;
+  retention_policy_id?: string;
+  retention_policy_name?: string;
+  disposition_date?: string;
+}
+
+export interface DocumentMetadataUpdate {
+  owner_id?: string;
+  custodian_id?: string;
+  review_cycle_months?: number;
+  next_review_date?: string;
+  requires_training?: boolean;
+  training_validity_months?: number;
+  retention_policy_id?: string;
+}
+
+export interface RetentionPolicy {
+  id: string;
+  name: string;
+  description?: string;
+  retention_years: number;
+  disposition_method: string;
+  applicable_document_types: string[];
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface UserSummary {
+  id: string;
+  email: string;
+  full_name: string;
+  title?: string;
+  is_active: boolean;
+}
+
+export interface ApprovalStep {
+  step_order: number;
+  name: string;
+  approver_role?: string;
+  approver_user_id?: string;
+  min_approvers?: number;
+  allow_delegate?: boolean;
+}
+
+export interface ApprovalMatrix {
+  id: string;
+  name: string;
+  description?: string;
+  applicable_document_types: string[];
+  steps: ApprovalStep[];
+  require_sequential: boolean;
+  is_active: boolean;
+}
+
+export interface ApprovalMatrixCreate {
+  name: string;
+  description?: string;
+  organization_id: string;
+  applicable_document_types?: string[];
+  steps: ApprovalStep[];
+  require_sequential?: boolean;
+}
+
+export const documentControlApi = {
+  // Metadata
+  getMetadata: async (pageId: string): Promise<{ page_id: string; metadata: DocumentMetadata }> => {
+    const response = await api.get(`/document-control/pages/${pageId}/metadata`);
+    return response.data;
+  },
+
+  updateMetadata: async (
+    pageId: string,
+    data: DocumentMetadataUpdate
+  ): Promise<{ page_id: string; metadata: DocumentMetadata }> => {
+    const response = await api.patch(`/document-control/pages/${pageId}/metadata`, data);
+    return response.data;
+  },
+
+  // Lifecycle
+  transitionStatus: async (
+    pageId: string,
+    toStatus: string,
+    reason?: string
+  ): Promise<void> => {
+    await api.post(`/document-control/pages/${pageId}/transition`, {
+      to_status: toStatus,
+      reason,
+    });
+  },
+
+  getAvailableTransitions: async (
+    pageId: string
+  ): Promise<{ current_status: string; available_transitions: string[] }> => {
+    const response = await api.get(`/document-control/pages/${pageId}/transitions`);
+    return response.data;
+  },
+
+  // Retention Policies
+  listRetentionPolicies: async (activeOnly = true): Promise<RetentionPolicy[]> => {
+    const response = await api.get<RetentionPolicy[]>('/document-control/retention-policies', {
+      params: { active_only: activeOnly },
+    });
+    return response.data;
+  },
+
+  // Users (for owner/custodian selection)
+  listUsers: async (): Promise<UserSummary[]> => {
+    const response = await api.get<UserSummary[]>('/users/');
+    return response.data;
+  },
+
+  // Approval Matrices
+  listApprovalMatrices: async (activeOnly = true): Promise<{ matrices: ApprovalMatrix[] }> => {
+    const response = await api.get('/document-control/approval-matrices', {
+      params: { active_only: activeOnly },
+    });
+    return response.data;
+  },
+
+  createApprovalMatrix: async (data: ApprovalMatrixCreate): Promise<{ id: string; name: string }> => {
+    const response = await api.post('/document-control/approval-matrices', data);
+    return response.data;
+  },
+
+  // Pending Approvals
+  getPendingApprovals: async (): Promise<{ total: number; change_requests: unknown[] }> => {
+    const response = await api.get('/document-control/pending-approvals');
+    return response.data;
+  },
+
+  // Approval Decisions
+  recordApprovalDecision: async (
+    changeRequestId: string,
+    decision: 'approved' | 'rejected' | 'skipped',
+    comment?: string
+  ): Promise<void> => {
+    await api.post(`/document-control/change-requests/${changeRequestId}/approve`, {
+      decision,
+      comment,
+    });
+  },
+};
+
 export const signatureApi = {
   // Initiate signature flow
   initiate: async (data: InitiateSignatureRequest): Promise<InitiateSignatureResponse> => {
@@ -1069,6 +1225,440 @@ export const signatureApi = {
       `/change-requests/${changeRequestId}/signatures`,
       { params: { include_invalid: includeInvalid } }
     );
+    return response.data;
+  },
+};
+
+// Git Remote API (Sprint 13)
+export type GitProvider = 'github' | 'gitlab' | 'gitea' | 'custom';
+export type SyncStrategy = 'push_only' | 'pull_only' | 'bidirectional';
+export type SyncStatus = 'synced' | 'pending' | 'error' | 'conflict' | 'not_configured';
+export type CredentialType = 'ssh_key' | 'https_token' | 'deploy_key';
+
+export interface RemoteConfig {
+  organization_id: string;
+  remote_url?: string;
+  provider?: string;
+  sync_enabled: boolean;
+  sync_strategy?: string;
+  default_branch: string;
+  last_sync_at?: string;
+  sync_status?: string;
+  has_credentials: boolean;
+}
+
+export interface RemoteConfigCreate {
+  remote_url: string;
+  provider: GitProvider;
+  sync_strategy?: SyncStrategy;
+  default_branch?: string;
+  sync_enabled?: boolean;
+}
+
+export interface RemoteConfigUpdate {
+  remote_url?: string;
+  provider?: GitProvider;
+  sync_strategy?: SyncStrategy;
+  default_branch?: string;
+  sync_enabled?: boolean;
+}
+
+export interface CredentialCreate {
+  credential_type: CredentialType;
+  value: string;
+  label?: string;
+  expires_at?: string;
+}
+
+export interface CredentialInfo {
+  id: string;
+  organization_id: string;
+  credential_type: string;
+  key_fingerprint?: string;
+  label?: string;
+  expires_at?: string;
+  is_expired: boolean;
+  created_at: string;
+  created_by_id: string;
+}
+
+export interface SyncRequest {
+  branch?: string;
+  force?: boolean;
+}
+
+export interface SyncResponse {
+  success: boolean;
+  event_id: string;
+  event_type: string;
+  status: string;
+  branch: string;
+  commit_sha_before?: string;
+  commit_sha_after?: string;
+  message?: string;
+  files_changed?: string[];
+}
+
+export interface SyncEvent {
+  id: string;
+  event_type: string;
+  direction: string;
+  status: string;
+  branch_name: string;
+  commit_sha_before?: string;
+  commit_sha_after?: string;
+  error_message?: string;
+  trigger_source?: string;
+  triggered_by_id?: string;
+  created_at: string;
+  started_at?: string;
+  completed_at?: string;
+  duration_seconds?: number;
+}
+
+export interface SyncHistoryResponse {
+  events: SyncEvent[];
+  total: number;
+}
+
+export interface SyncStatusInfo {
+  organization_id: string;
+  sync_enabled: boolean;
+  sync_strategy?: string;
+  sync_status: string;
+  last_sync_at?: string;
+  default_branch: string;
+  remote_url?: string;
+  provider?: string;
+  divergence?: {
+    ahead: number;
+    behind: number;
+    diverged: boolean;
+    remote_exists: boolean;
+  };
+}
+
+export interface WebhookInfo {
+  webhook_url: string;
+  has_secret: boolean;
+}
+
+export interface WebhookRegenerateResponse {
+  webhook_url: string;
+  secret: string;
+}
+
+export interface ConnectionTestResult {
+  success: boolean;
+  message: string;
+  remote_url?: string;
+  default_branch?: string;
+}
+
+// Publishing API (Sprint A)
+export type SiteStatus = 'draft' | 'published' | 'maintenance' | 'archived';
+export type SiteVisibility = 'public' | 'authenticated' | 'restricted';
+export type SidebarPosition = 'left' | 'right' | 'none';
+export type ContentWidth = 'narrow' | 'medium' | 'wide' | 'full';
+
+export interface Theme {
+  id: string;
+  organization_id?: string;
+  name: string;
+  description?: string;
+  is_default: boolean;
+  primary_color: string;
+  secondary_color: string;
+  accent_color: string;
+  background_color: string;
+  surface_color: string;
+  text_color: string;
+  text_muted_color: string;
+  heading_font: string;
+  body_font: string;
+  code_font: string;
+  base_font_size: string;
+  sidebar_position: SidebarPosition;
+  content_width: ContentWidth;
+  toc_enabled: boolean;
+  header_height: string;
+  logo_url?: string;
+  favicon_url?: string;
+  custom_css?: string;
+  custom_head_html?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ThemeCreate {
+  name: string;
+  description?: string;
+  primary_color?: string;
+  secondary_color?: string;
+  accent_color?: string;
+  background_color?: string;
+  surface_color?: string;
+  text_color?: string;
+  text_muted_color?: string;
+  heading_font?: string;
+  body_font?: string;
+  code_font?: string;
+  base_font_size?: string;
+  sidebar_position?: SidebarPosition;
+  content_width?: ContentWidth;
+  toc_enabled?: boolean;
+  header_height?: string;
+  logo_url?: string;
+  favicon_url?: string;
+  custom_css?: string;
+  custom_head_html?: string;
+}
+
+export interface ThemeUpdate extends Partial<ThemeCreate> {}
+
+export interface PublishedSite {
+  id: string;
+  space_id: string;
+  organization_id: string;
+  slug: string;
+  site_title: string;
+  site_description?: string;
+  theme_id?: string;
+  theme?: Theme;
+  custom_css?: string;
+  logo_url?: string;
+  og_image_url?: string;
+  favicon_url?: string;
+  custom_domain?: string;
+  custom_domain_verified: boolean;
+  visibility: SiteVisibility;
+  allowed_email_domains?: string[];
+  search_enabled: boolean;
+  toc_enabled: boolean;
+  version_selector_enabled: boolean;
+  feedback_enabled: boolean;
+  analytics_id?: string;
+  status: SiteStatus;
+  last_published_at?: string;
+  published_by_id?: string;
+  public_url?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SiteCreate {
+  space_id: string;
+  slug: string;
+  site_title: string;
+  site_description?: string;
+  theme_id?: string;
+  custom_css?: string;
+  logo_url?: string;
+  og_image_url?: string;
+  favicon_url?: string;
+  visibility?: SiteVisibility;
+  allowed_email_domains?: string[];
+  search_enabled?: boolean;
+  toc_enabled?: boolean;
+  version_selector_enabled?: boolean;
+  feedback_enabled?: boolean;
+  analytics_id?: string;
+}
+
+export interface SiteUpdate extends Partial<SiteCreate> {
+  custom_domain?: string;
+  status?: SiteStatus;
+}
+
+export interface PublishResult {
+  success: boolean;
+  site_id: string;
+  published_at: string;
+  commit_sha?: string;
+  pages_published: number;
+  public_url?: string;
+  message?: string;
+}
+
+export interface NavigationItem {
+  id: string;
+  title: string;
+  slug: string;
+  path: string;
+  type: string;
+  children?: NavigationItem[];
+}
+
+export interface SiteNavigationResponse {
+  items: NavigationItem[];
+  current_page_id?: string;
+}
+
+export interface RenderedPage {
+  id: string;
+  title: string;
+  slug: string;
+  path: string;
+  content_html: string;
+  toc: { id: string; text: string; level: number }[];
+  breadcrumbs: { title: string; path: string }[];
+  last_updated: string;
+  author_name?: string;
+  meta_description?: string;
+  prev_page?: { title: string; path: string };
+  next_page?: { title: string; path: string };
+}
+
+export const publishingApi = {
+  // Themes
+  listThemes: async (params?: { organization_id?: string; include_system?: boolean }): Promise<Theme[]> => {
+    const response = await api.get<Theme[]>('/publishing/themes', { params });
+    return response.data;
+  },
+
+  getTheme: async (themeId: string): Promise<Theme> => {
+    const response = await api.get<Theme>(`/publishing/themes/${themeId}`);
+    return response.data;
+  },
+
+  createTheme: async (organizationId: string, data: ThemeCreate): Promise<Theme> => {
+    const response = await api.post<Theme>(`/publishing/organizations/${organizationId}/themes`, data);
+    return response.data;
+  },
+
+  updateTheme: async (themeId: string, data: ThemeUpdate): Promise<Theme> => {
+    const response = await api.patch<Theme>(`/publishing/themes/${themeId}`, data);
+    return response.data;
+  },
+
+  deleteTheme: async (themeId: string): Promise<void> => {
+    await api.delete(`/publishing/themes/${themeId}`);
+  },
+
+  duplicateTheme: async (themeId: string, organizationId: string, newName: string): Promise<Theme> => {
+    const response = await api.post<Theme>(`/publishing/themes/${themeId}/duplicate`, null, {
+      params: { organization_id: organizationId, new_name: newName },
+    });
+    return response.data;
+  },
+
+  // Sites
+  listSites: async (params?: { organization_id?: string; status?: SiteStatus }): Promise<PublishedSite[]> => {
+    const response = await api.get<PublishedSite[]>('/publishing/sites', { params });
+    return response.data;
+  },
+
+  getSite: async (siteId: string): Promise<PublishedSite> => {
+    const response = await api.get<PublishedSite>(`/publishing/sites/${siteId}`);
+    return response.data;
+  },
+
+  createSite: async (data: SiteCreate): Promise<PublishedSite> => {
+    const response = await api.post<PublishedSite>('/publishing/sites', data);
+    return response.data;
+  },
+
+  updateSite: async (siteId: string, data: SiteUpdate): Promise<PublishedSite> => {
+    const response = await api.patch<PublishedSite>(`/publishing/sites/${siteId}`, data);
+    return response.data;
+  },
+
+  deleteSite: async (siteId: string): Promise<void> => {
+    await api.delete(`/publishing/sites/${siteId}`);
+  },
+
+  publishSite: async (siteId: string, commitMessage?: string): Promise<PublishResult> => {
+    const response = await api.post<PublishResult>(`/publishing/sites/${siteId}/publish`, {
+      commit_message: commitMessage,
+    });
+    return response.data;
+  },
+
+  unpublishSite: async (siteId: string): Promise<PublishedSite> => {
+    const response = await api.post<PublishedSite>(`/publishing/sites/${siteId}/unpublish`);
+    return response.data;
+  },
+
+  getSiteNavigation: async (siteId: string, currentPageId?: string): Promise<SiteNavigationResponse> => {
+    const response = await api.get<SiteNavigationResponse>(`/publishing/sites/${siteId}/navigation`, {
+      params: { current_page_id: currentPageId },
+    });
+    return response.data;
+  },
+
+  getSitePage: async (siteId: string, pageSlug: string): Promise<RenderedPage> => {
+    const response = await api.get<RenderedPage>(`/publishing/sites/${siteId}/pages/${pageSlug}`);
+    return response.data;
+  },
+};
+
+export const gitApi = {
+  // Remote Configuration
+  getRemoteConfig: async (orgId: string): Promise<RemoteConfig> => {
+    const response = await api.get<RemoteConfig>(`/git/organizations/${orgId}/remote`);
+    return response.data;
+  },
+
+  configureRemote: async (orgId: string, config: RemoteConfigCreate): Promise<RemoteConfig> => {
+    const response = await api.put<RemoteConfig>(`/git/organizations/${orgId}/remote`, config);
+    return response.data;
+  },
+
+  updateRemoteConfig: async (orgId: string, config: RemoteConfigUpdate): Promise<RemoteConfig> => {
+    const response = await api.patch<RemoteConfig>(`/git/organizations/${orgId}/remote`, config);
+    return response.data;
+  },
+
+  removeRemoteConfig: async (orgId: string): Promise<void> => {
+    await api.delete(`/git/organizations/${orgId}/remote`);
+  },
+
+  testConnection: async (orgId: string): Promise<ConnectionTestResult> => {
+    const response = await api.post<ConnectionTestResult>(`/git/organizations/${orgId}/remote/test`);
+    return response.data;
+  },
+
+  // Credentials
+  getCredential: async (orgId: string): Promise<CredentialInfo> => {
+    const response = await api.get<CredentialInfo>(`/git/organizations/${orgId}/credentials`);
+    return response.data;
+  },
+
+  setCredential: async (orgId: string, credential: CredentialCreate): Promise<CredentialInfo> => {
+    const response = await api.post<CredentialInfo>(`/git/organizations/${orgId}/credentials`, credential);
+    return response.data;
+  },
+
+  deleteCredential: async (orgId: string): Promise<void> => {
+    await api.delete(`/git/organizations/${orgId}/credentials`);
+  },
+
+  // Sync Operations
+  triggerSync: async (orgId: string, request: SyncRequest = {}): Promise<SyncResponse> => {
+    const response = await api.post<SyncResponse>(`/git/organizations/${orgId}/sync`, request);
+    return response.data;
+  },
+
+  getSyncStatus: async (orgId: string): Promise<SyncStatusInfo> => {
+    const response = await api.get<SyncStatusInfo>(`/git/organizations/${orgId}/sync/status`);
+    return response.data;
+  },
+
+  getSyncHistory: async (orgId: string, limit = 50, offset = 0): Promise<SyncHistoryResponse> => {
+    const response = await api.get<SyncHistoryResponse>(`/git/organizations/${orgId}/sync/history`, {
+      params: { limit, offset },
+    });
+    return response.data;
+  },
+
+  // Webhooks
+  getWebhookInfo: async (orgId: string): Promise<WebhookInfo> => {
+    const response = await api.get<WebhookInfo>(`/git/organizations/${orgId}/webhook`);
+    return response.data;
+  },
+
+  regenerateWebhookSecret: async (orgId: string): Promise<WebhookRegenerateResponse> => {
+    const response = await api.post<WebhookRegenerateResponse>(`/git/organizations/${orgId}/webhook/regenerate`);
     return response.data;
   },
 };
