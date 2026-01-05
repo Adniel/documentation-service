@@ -1700,6 +1700,144 @@ export const gitApi = {
   },
 };
 
+// Service Account Types (Sprint C - MCP)
+export type ServiceAccountRole = 'reader' | 'contributor' | 'admin';
+
+export interface ServiceAccount {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  api_key_prefix: string;
+  role: ServiceAccountRole;
+  allowed_spaces?: string[];
+  allowed_operations?: string[];
+  ip_allowlist?: string[];
+  rate_limit_per_minute: number;
+  is_active: boolean;
+  expires_at?: string;
+  last_used_at?: string;
+  created_by_id: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceAccountCreate {
+  name: string;
+  description?: string;
+  role?: ServiceAccountRole;
+  allowed_spaces?: string[];
+  allowed_operations?: string[];
+  ip_allowlist?: string[];
+  rate_limit_per_minute?: number;
+  expires_at?: string;
+}
+
+export interface ServiceAccountUpdate {
+  name?: string;
+  description?: string;
+  role?: ServiceAccountRole;
+  allowed_spaces?: string[];
+  allowed_operations?: string[];
+  ip_allowlist?: string[];
+  rate_limit_per_minute?: number;
+  is_active?: boolean;
+  expires_at?: string;
+}
+
+export interface ServiceAccountCreateResponse extends ServiceAccount {
+  api_key: string;
+}
+
+export interface ServiceAccountListResponse {
+  accounts: ServiceAccount[];
+  total: number;
+}
+
+export interface ApiKeyRotateResponse {
+  api_key: string;
+  api_key_prefix: string;
+}
+
+export interface UsageStatsResponse {
+  account_id: string;
+  period_days: number;
+  total_requests: number;
+  successful_requests: number;
+  failed_requests: number;
+  avg_response_time_ms: number;
+  operations: Record<string, number>;
+  daily_usage: Array<{
+    date: string;
+    requests: number;
+    errors: number;
+  }>;
+  last_used_at?: string;
+}
+
+export interface McpServerInfo {
+  name: string;
+  version: string;
+  protocol_version: string;
+  description: string;
+  endpoint: string;
+  authentication: {
+    type: string;
+    header: string;
+    format: string;
+  };
+  tools: string[];
+}
+
+// Service Account API (Sprint C - MCP)
+export const serviceAccountApi = {
+  list: async (includeInactive = false): Promise<ServiceAccountListResponse> => {
+    const response = await api.get<ServiceAccountListResponse>('/service-accounts', {
+      params: { include_inactive: includeInactive },
+    });
+    return response.data;
+  },
+
+  get: async (accountId: string): Promise<ServiceAccount> => {
+    const response = await api.get<ServiceAccount>(`/service-accounts/${accountId}`);
+    return response.data;
+  },
+
+  create: async (data: ServiceAccountCreate): Promise<ServiceAccountCreateResponse> => {
+    const response = await api.post<ServiceAccountCreateResponse>('/service-accounts', data);
+    return response.data;
+  },
+
+  update: async (accountId: string, data: ServiceAccountUpdate): Promise<ServiceAccount> => {
+    const response = await api.patch<ServiceAccount>(`/service-accounts/${accountId}`, data);
+    return response.data;
+  },
+
+  delete: async (accountId: string): Promise<void> => {
+    await api.delete(`/service-accounts/${accountId}`);
+  },
+
+  rotateKey: async (accountId: string): Promise<ApiKeyRotateResponse> => {
+    const response = await api.post<ApiKeyRotateResponse>(`/service-accounts/${accountId}/rotate-key`);
+    return response.data;
+  },
+
+  getUsage: async (accountId: string, days = 30): Promise<UsageStatsResponse> => {
+    const response = await api.get<UsageStatsResponse>(`/service-accounts/${accountId}/usage`, {
+      params: { days },
+    });
+    return response.data;
+  },
+};
+
+// MCP API (Sprint C)
+export const mcpApi = {
+  getInfo: async (): Promise<McpServerInfo> => {
+    const response = await api.get<McpServerInfo>('/mcp/info');
+    return response.data;
+  },
+};
+
 // Audit API (Sprint B)
 export const auditApi = {
   // Organization-scoped audit (for org admins)

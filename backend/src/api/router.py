@@ -20,6 +20,8 @@ from src.api.endpoints import (
     git,
     webhooks,
     publishing,
+    service_accounts,
+    mcp,
 )
 
 api_router = APIRouter()
@@ -92,3 +94,11 @@ api_router.include_router(
 api_router.include_router(
     publishing.router, prefix="/publishing", tags=["Publishing"]
 )
+
+# Service accounts routes (Sprint C)
+api_router.include_router(
+    service_accounts.router, prefix="/service-accounts", tags=["Service Accounts"]
+)
+
+# MCP routes (Sprint C)
+api_router.include_router(mcp.router, prefix="/mcp", tags=["MCP"])

@@ -92,6 +92,12 @@ from src.db.models.published_site import (
     SiteVisibility,
 )
 
+# Sprint C: MCP Integration
+from src.db.models.service_account import (
+    ServiceAccount,
+    ServiceAccountUsage,
+)
+
 __all__ = [
     # Core models
     "User",
@@ -154,4 +160,7 @@ __all__ = [
     "PublishedSite",
     "SiteStatus",
     "SiteVisibility",
+    # Sprint C: MCP Integration
+    "ServiceAccount",
+    "ServiceAccountUsage",
 ]

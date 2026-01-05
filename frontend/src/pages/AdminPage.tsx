@@ -20,9 +20,10 @@ import {
 import { RemoteConfigPanel, SyncStatusBadge, SyncHistoryList } from '../components/git';
 import { SiteConfigPanel, ThemeEditor } from '../components/publishing';
 import { UserManagementPanel, OrganizationSettingsPanel, AuditLogPanel } from '../components/admin';
-import { organizationApi, publishingApi, type Assessment } from '../lib/api';
+import { ServiceAccountList, ServiceAccountForm, UsageStats, McpInfo } from '../components/mcp';
+import { organizationApi, publishingApi, type Assessment, type ServiceAccount } from '../lib/api';
 
-type AdminTab = 'users' | 'organization' | 'audit' | 'assessments' | 'document-control' | 'approvals' | 'training-reports' | 'git-remote' | 'publishing';
+type AdminTab = 'users' | 'organization' | 'audit' | 'assessments' | 'document-control' | 'approvals' | 'training-reports' | 'git-remote' | 'publishing' | 'mcp';
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<AdminTab>('users');
@@ -32,6 +33,10 @@ export default function AdminPage() {
   const [selectedOrgId, setSelectedOrgId] = useState<string>('');
   const [showThemeEditor, setShowThemeEditor] = useState(false);
   const [editingThemeId, setEditingThemeId] = useState<string | undefined>(undefined);
+  // MCP state
+  const [showServiceAccountForm, setShowServiceAccountForm] = useState(false);
+  const [editingServiceAccount, setEditingServiceAccount] = useState<ServiceAccount | null>(null);
+  const [viewingUsageAccount, setViewingUsageAccount] = useState<ServiceAccount | null>(null);
 
   // Fetch organizations for Git Remote tab
   const { data: organizations = [] } = useQuery({
@@ -125,6 +130,15 @@ export default function AdminPage() {
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9" />
+        </svg>
+      ),
+    },
+    {
+      id: 'mcp',
+      label: 'MCP Integration',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z" />
         </svg>
       ),
     },
@@ -525,6 +539,52 @@ export default function AdminPage() {
               <div className="bg-white rounded-lg shadow p-8 text-center text-gray-500">
                 <p>No organizations available. Please create an organization first.</p>
               </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'mcp' && (
+          <div className="space-y-6">
+            {/* MCP Server Info */}
+            <McpInfo />
+
+            {/* Service Accounts */}
+            <div className="bg-white rounded-lg shadow">
+              <div className="px-6 py-4 border-b border-gray-200">
+                <h2 className="text-lg font-medium text-gray-900">Service Accounts</h2>
+                <p className="mt-1 text-sm text-gray-500">
+                  Manage API keys for MCP access to your documentation
+                </p>
+              </div>
+              <div className="p-6">
+                {showServiceAccountForm || editingServiceAccount ? (
+                  <ServiceAccountForm
+                    account={editingServiceAccount || undefined}
+                    onSuccess={() => {
+                      setShowServiceAccountForm(false);
+                      setEditingServiceAccount(null);
+                    }}
+                    onCancel={() => {
+                      setShowServiceAccountForm(false);
+                      setEditingServiceAccount(null);
+                    }}
+                  />
+                ) : (
+                  <ServiceAccountList
+                    onCreateNew={() => setShowServiceAccountForm(true)}
+                    onEdit={(account) => setEditingServiceAccount(account)}
+                    onViewUsage={(account) => setViewingUsageAccount(account)}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Usage Stats Modal */}
+            {viewingUsageAccount && (
+              <UsageStats
+                account={viewingUsageAccount}
+                onClose={() => setViewingUsageAccount(null)}
+              />
             )}
           </div>
         )}
