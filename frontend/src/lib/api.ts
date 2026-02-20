@@ -2006,4 +2006,113 @@ export const attachmentApi = {
   },
 };
 
+// ============================================================================
+// Portability API (Sprint G)
+// ============================================================================
+
+export interface ImportUploadResponse {
+  session_id: string;
+  filename: string;
+  size_bytes: number;
+}
+
+export interface ImportItem {
+  path: string;
+  item_type: string;
+  title: string;
+  slug: string;
+  status: 'create' | 'update' | 'conflict' | 'skip' | 'error';
+  conflict_reason?: string;
+  existing_id?: string;
+}
+
+export interface ImportPreviewResponse {
+  format_detected: string;
+  items: ImportItem[];
+  statistics: Record<string, number>;
+  warnings: string[];
+}
+
+export interface ImportConflictResolution {
+  path: string;
+  action: 'skip' | 'overwrite' | 'rename';
+}
+
+export interface ImportExecuteRequest {
+  target_workspace_id: string;
+  target_space_id?: string;
+  default_conflict_action: 'skip' | 'overwrite' | 'rename';
+  resolutions: ImportConflictResolution[];
+}
+
+export interface ImportResultItem {
+  path: string;
+  item_type: string;
+  title: string;
+  status: string;
+  resource_id?: string;
+  error?: string;
+}
+
+export interface ImportResult {
+  total: number;
+  created: number;
+  updated: number;
+  skipped: number;
+  errors: number;
+  items: ImportResultItem[];
+}
+
+export const portabilityApi = {
+  exportContent: async (
+    scope: 'organization' | 'workspace' | 'space',
+    resourceId: string,
+    includeContent: boolean = true,
+  ): Promise<Blob> => {
+    const response = await api.post('/portability/export', null, {
+      params: { scope, resource_id: resourceId, include_content: includeContent },
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  uploadImport: async (file: File): Promise<ImportUploadResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await api.post<ImportUploadResponse>('/portability/import/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
+  },
+
+  previewImport: async (
+    sessionId: string,
+    targetWorkspaceId: string,
+    targetSpaceId?: string,
+  ): Promise<ImportPreviewResponse> => {
+    const response = await api.post<ImportPreviewResponse>('/portability/import/preview', null, {
+      params: {
+        session_id: sessionId,
+        target_workspace_id: targetWorkspaceId,
+        target_space_id: targetSpaceId,
+      },
+    });
+    return response.data;
+  },
+
+  executeImport: async (
+    sessionId: string,
+    request: ImportExecuteRequest,
+  ): Promise<ImportResult> => {
+    const response = await api.post<ImportResult>('/portability/import/execute', request, {
+      params: { session_id: sessionId },
+    });
+    return response.data;
+  },
+
+  cancelImport: async (sessionId: string): Promise<void> => {
+    await api.delete(`/portability/import/${sessionId}`);
+  },
+};
+
 export default api;

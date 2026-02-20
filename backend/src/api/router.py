@@ -24,6 +24,7 @@ from src.api.endpoints import (
     mcp,
     visitors,
     attachments,
+    portability,
 )
 
 api_router = APIRouter()
@@ -111,4 +112,9 @@ api_router.include_router(visitors.router, tags=["Visitors"])
 # Attachment routes (Sprint F)
 api_router.include_router(
     attachments.router, prefix="/attachments", tags=["Attachments"]
+)
+
+# Portability routes (Sprint G)
+api_router.include_router(
+    portability.router, prefix="/portability", tags=["Portability"]
 )

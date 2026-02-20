@@ -16,12 +16,12 @@ audit trail, learning module, and Git remote sync.
 | **P1** | D | Integrated Access Control | Done |
 | **P1** | F | Attachments & Media | Done |
 
-## Phase 3: Enhancement (Next)
+## Phase 3: Enhancement (Complete)
 
-| Priority | Sprint | Focus | Est. Effort | Key Deliverable |
-|----------|--------|-------|-------------|-----------------|
-| **P2** | E | Diataxis Revision | 1 week | Per-page content types |
-| **P2** | G | Metadata Portability | 2 weeks | Export/Import, Confluence migration |
+| Priority | Sprint | Focus | Status |
+|----------|--------|-------|--------|
+| **P2** | E | Diataxis Revision | Done |
+| **P2** | G | Metadata Portability | Done |
 
 ## Phase 4: Polish
 
@@ -79,6 +79,23 @@ audit trail, learning module, and Git remote sync.
 - [x] Slash commands (/image, /file, /attachment-list)
 - [x] attachmentApi in frontend API client
 
+### Sprint E: Diataxis Revision
+- [x] Per-page diataxis_types JSONB field with GIN index
+- [x] Space-to-page type inheritance
+- [x] DiataxisTypePicker frontend component
+- [x] Search and navigation updated for array field
+
+### Sprint G: Metadata Portability
+- [x] PageMeta, SpaceMeta, WorkspaceMeta YAML schemas
+- [x] MetadataSyncService (write _meta.yaml alongside content in Git)
+- [x] ExportService (ZIP generation for org/workspace/space)
+- [x] ImportService with preview, conflict detection, and execution
+- [x] MarkdownAdapter (folder import with frontmatter)
+- [x] ConfluenceAdapter (HTML-to-TipTap conversion)
+- [x] Portability API endpoints (/portability/export, /portability/import/*)
+- [x] portabilityApi in frontend API client
+- [x] ExportWizard, ImportWizard, ImportPreview, ConflictResolver, ImportProgress components
+
 ---
 
 ## Remaining Sprint Details
@@ -113,19 +130,23 @@ audit trail, learning module, and Git remote sync.
 ### Sprint G: Metadata Portability (2 weeks)
 
 **Week 1**
-- [ ] Define _meta.yaml schema
-- [ ] Implement filesystem metadata storage
-- [ ] Sync service between DB and filesystem
-- [ ] Export API endpoints
+- [x] Define _meta.yaml schema (PageMeta, SpaceMeta, WorkspaceMeta Pydantic models)
+- [x] Implement filesystem metadata storage (MetadataSyncService)
+- [x] Sync service between DB and filesystem (write _meta.yaml on page create/update)
+- [x] Export API endpoints (ExportService + /portability/export)
+- [x] ExportManifest with format version, statistics
 
 **Week 2**
-- [ ] ImportWizard frontend component
-- [ ] Confluence adapter
-- [ ] SharePoint adapter
-- [ ] Conflict resolution UI
-- [ ] Integration tests
+- [x] ImportWizard frontend component (multi-step: upload, preview, execute)
+- [x] Confluence adapter (HTML-to-TipTap conversion)
+- [x] Markdown adapter (folder import with frontmatter support)
+- [ ] SharePoint adapter (deferred - low demand)
+- [x] Conflict resolution UI (ConflictResolver component with skip/overwrite/rename)
+- [x] ExportWizard, ImportPreview, ImportProgress frontend components
+- [x] Unit tests (test_portability_metadata.py, test_exporter.py, test_importer.py)
+- [x] Integration tests (test_portability_api.py)
 
-**Milestone:** Metadata stored in Git alongside content. Import from Confluence/SharePoint works.
+**Milestone:** Metadata stored in Git alongside content. Export/import works. Confluence migration supported.
 
 ---
 

@@ -25,6 +25,7 @@ from src.modules.content.service import (
 from src.modules.content.git_service import get_git_service
 from src.modules.audit.audit_service import AuditService
 from src.modules.document_control.content_hash_service import compute_content_hash
+from src.modules.portability.metadata_service import MetadataSyncService
 
 router = APIRouter()
 
@@ -92,6 +93,18 @@ async def create_pg(
         page.git_commit_sha = commit_sha
         await db.commit()
         await db.refresh(page)
+
+        # Sync metadata YAML to Git (Sprint G)
+        meta_service = MetadataSyncService(git_service)
+        meta_service.sync_page_metadata(
+            org_slug=org.slug,
+            workspace_slug=workspace.slug,
+            space_slug=space.slug,
+            page_slug=page.slug,
+            page=page,
+            author_name=current_user.full_name,
+            author_email=current_user.email,
+        )
 
     # Audit: Log page creation (21 CFR §11.10(e))
     audit_service = AuditService(db)
@@ -258,6 +271,18 @@ async def update_pg(
             updated.git_commit_sha = commit_sha
             await db.commit()
             await db.refresh(updated)
+
+        # Sync metadata YAML to Git (Sprint G)
+        meta_service = MetadataSyncService(git_service)
+        meta_service.sync_page_metadata(
+            org_slug=org.slug,
+            workspace_slug=workspace.slug,
+            space_slug=page.space.slug,
+            page_slug=page.slug,
+            page=updated,
+            author_name=current_user.full_name,
+            author_email=current_user.email,
+        )
 
     # Audit: Log page update (21 CFR §11.10(e))
     audit_service = AuditService(db)
