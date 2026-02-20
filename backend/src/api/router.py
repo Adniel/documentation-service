@@ -25,6 +25,7 @@ from src.api.endpoints import (
     visitors,
     attachments,
     portability,
+    export,
 )
 
 api_router = APIRouter()
@@ -117,4 +118,9 @@ api_router.include_router(
 # Portability routes (Sprint G)
 api_router.include_router(
     portability.router, prefix="/portability", tags=["Portability"]
+)
+
+# Export routes (Sprint I)
+api_router.include_router(
+    export.router, prefix="/export", tags=["Export"]
 )

@@ -26,6 +26,8 @@ from src.modules.content.git_service import get_git_service
 from src.modules.audit.audit_service import AuditService
 from src.modules.document_control.content_hash_service import compute_content_hash
 from src.modules.portability.metadata_service import MetadataSyncService
+from src.modules.publishing.renderer import render_page_content
+from src.modules.export.schemas import RenderResponse
 
 router = APIRouter()
 
@@ -384,6 +386,38 @@ async def get_pg_history(
     )
 
     return history
+
+
+# =============================================================================
+# RENDER ENDPOINT (Sprint I)
+# =============================================================================
+
+
+@router.get("/pages/{page_id}/render", response_model=RenderResponse)
+async def render_page(
+    page_id: str,
+    db: DbSession,
+    current_user: CurrentUser,
+) -> RenderResponse:
+    """Render a page's TipTap content to HTML.
+
+    Returns rendered HTML, table of contents, and title for the reader view.
+    """
+    page = await get_page(db, page_id)
+    if not page or not page.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Page not found",
+        )
+
+    content = page.content or {"type": "doc", "content": []}
+    content_html, toc = render_page_content(content)
+
+    return RenderResponse(
+        content_html=content_html,
+        toc=toc,
+        title=page.title,
+    )
 
 
 # =============================================================================

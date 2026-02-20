@@ -11,6 +11,7 @@ import NewPagePage from './pages/NewPagePage';
 import PageHistoryPage from './pages/PageHistoryPage';
 import ContentBrowserPage from './pages/ContentBrowserPage';
 import SearchResultsPage from './pages/SearchResultsPage';
+import ReadingPage from './pages/ReadingPage';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -79,6 +80,16 @@ function App() {
         element={
           <ProtectedRoute>
             <EditorPage />
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Read-only page viewer (Sprint I) */}
+      <Route
+        path="/pages/:pageId"
+        element={
+          <ProtectedRoute>
+            <ReadingPage />
           </ProtectedRoute>
         }
       />

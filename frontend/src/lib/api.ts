@@ -245,6 +245,11 @@ export const contentApi = {
     await api.delete(`/content/pages/${id}`);
   },
 
+  render: async (id: string): Promise<{ content_html: string; toc: { id: string; text: string; level: number }[]; title: string }> => {
+    const response = await api.get(`/content/pages/${id}/render`);
+    return response.data;
+  },
+
   getHistory: async (id: string): Promise<VersionHistoryEntry[]> => {
     const response = await api.get<VersionHistoryEntry[]>(`/content/pages/${id}/history`);
     return response.data;
@@ -2112,6 +2117,50 @@ export const portabilityApi = {
 
   cancelImport: async (sessionId: string): Promise<void> => {
     await api.delete(`/portability/import/${sessionId}`);
+  },
+};
+
+// Export API (Sprint I)
+export type ExportFormat = 'pdf' | 'docx' | 'markdown' | 'html';
+
+export const exportApi = {
+  pdf: async (pageId: string): Promise<Blob> => {
+    const response = await api.get(`/export/pages/${pageId}/pdf`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  docx: async (pageId: string): Promise<Blob> => {
+    const response = await api.get(`/export/pages/${pageId}/docx`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  markdown: async (pageId: string): Promise<Blob> => {
+    const response = await api.get(`/export/pages/${pageId}/markdown`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  batch: async (pageIds: string[], format: ExportFormat = 'pdf'): Promise<Blob> => {
+    const response = await api.post(
+      '/export/batch',
+      { page_ids: pageIds, format },
+      { responseType: 'blob' }
+    );
+    return response.data;
+  },
+
+  download: (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
   },
 };
 

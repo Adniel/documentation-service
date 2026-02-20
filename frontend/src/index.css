@@ -2,6 +2,229 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ==========================================
+   OpenDyslexic Font - Sprint I
+   ========================================== */
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Regular.woff') format('woff');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'OpenDyslexic';
+  src: url('https://cdn.jsdelivr.net/npm/open-dyslexic@1.0.3/woff/OpenDyslexic-Bold.woff') format('woff');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==========================================
+   Reader Theme Scopes - Sprint I
+   ========================================== */
+
+/* Light theme for content area only */
+.reader-light {
+  --reader-bg: #ffffff;
+  --reader-text: #1a1a2e;
+  --reader-text-muted: #4a5568;
+  --reader-heading: #111827;
+  --reader-link: #2563eb;
+  --reader-link-hover: #1d4ed8;
+  --reader-border: #e5e7eb;
+  --reader-code-bg: #f3f4f6;
+  --reader-blockquote-border: #3b82f6;
+  --reader-blockquote-text: #4b5563;
+  --reader-surface: #f9fafb;
+}
+
+/* Dark theme for content area */
+.reader-dark {
+  --reader-bg: #1e1e2e;
+  --reader-text: #e2e8f0;
+  --reader-text-muted: #94a3b8;
+  --reader-heading: #f1f5f9;
+  --reader-link: #60a5fa;
+  --reader-link-hover: #93c5fd;
+  --reader-border: #334155;
+  --reader-code-bg: #334155;
+  --reader-blockquote-border: #3b82f6;
+  --reader-blockquote-text: #94a3b8;
+  --reader-surface: #1e293b;
+}
+
+.reader-content {
+  background-color: var(--reader-bg);
+  color: var(--reader-text);
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.reader-content h1,
+.reader-content h2,
+.reader-content h3,
+.reader-content h4,
+.reader-content h5,
+.reader-content h6 {
+  color: var(--reader-heading);
+}
+
+.reader-content a {
+  color: var(--reader-link);
+}
+
+.reader-content a:hover {
+  color: var(--reader-link-hover);
+}
+
+.reader-content code {
+  background-color: var(--reader-code-bg);
+}
+
+.reader-content blockquote {
+  border-left-color: var(--reader-blockquote-border);
+  color: var(--reader-blockquote-text);
+}
+
+.reader-content hr {
+  border-color: var(--reader-border);
+}
+
+.reader-content table th,
+.reader-content table td {
+  border-color: var(--reader-border);
+}
+
+.reader-content table th {
+  background-color: var(--reader-surface);
+}
+
+/* ==========================================
+   High Contrast Mode - WCAG AAA (7:1)
+   ========================================== */
+.high-contrast {
+  --reader-bg: #000000;
+  --reader-text: #ffffff;
+  --reader-text-muted: #e0e0e0;
+  --reader-heading: #ffffff;
+  --reader-link: #ffff00;
+  --reader-link-hover: #ffd700;
+  --reader-border: #ffffff;
+  --reader-code-bg: #1a1a1a;
+  --reader-blockquote-border: #ffff00;
+  --reader-blockquote-text: #e0e0e0;
+  --reader-surface: #111111;
+}
+
+.high-contrast.reader-light {
+  --reader-bg: #ffffff;
+  --reader-text: #000000;
+  --reader-text-muted: #1a1a1a;
+  --reader-heading: #000000;
+  --reader-link: #0000cc;
+  --reader-link-hover: #000099;
+  --reader-border: #000000;
+  --reader-code-bg: #f0f0f0;
+  --reader-blockquote-border: #0000cc;
+  --reader-blockquote-text: #1a1a1a;
+  --reader-surface: #f5f5f5;
+}
+
+/* ==========================================
+   Dyslexic Font Override
+   ========================================== */
+.dyslexic-font {
+  font-family: 'OpenDyslexic', sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+  line-height: 1.8;
+}
+
+.dyslexic-font * {
+  font-family: 'OpenDyslexic', sans-serif !important;
+}
+
+.dyslexic-font code,
+.dyslexic-font pre code {
+  font-family: 'OpenDyslexic', monospace !important;
+}
+
+/* ==========================================
+   Print Styles - Sprint I
+   ========================================== */
+@media print {
+  /* Hide chrome */
+  nav,
+  header,
+  .reader-toolbar,
+  .reader-toc-sidebar,
+  .reading-progress-bar,
+  .context-menu,
+  .speed-reader-overlay,
+  .focus-mode-overlay,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /* Full-width content */
+  .reader-content {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+  }
+
+  /* B&W friendly */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  .reader-content {
+    background: white !important;
+    color: black !important;
+  }
+
+  .reader-content a {
+    color: black !important;
+    text-decoration: underline !important;
+  }
+
+  .reader-content a::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #666;
+  }
+
+  .reader-content code {
+    background: #f0f0f0 !important;
+    border: 1px solid #ccc;
+  }
+
+  .reader-content pre {
+    background: #f5f5f5 !important;
+    border: 1px solid #ccc;
+    page-break-inside: avoid;
+  }
+
+  .reader-content img {
+    max-width: 100% !important;
+    page-break-inside: avoid;
+  }
+
+  .reader-content h1,
+  .reader-content h2,
+  .reader-content h3 {
+    page-break-after: avoid;
+    color: black !important;
+  }
+
+  .reader-content table {
+    page-break-inside: avoid;
+  }
+}
+
 :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

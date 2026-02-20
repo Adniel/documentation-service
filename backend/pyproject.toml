@@ -57,6 +57,10 @@ dependencies = [
     # File Storage (Sprint F: Attachments)
     "aiofiles>=23.2.0",
 
+    # Document Export (Sprint I: Reader UI)
+    "weasyprint>=62.0",
+    "python-docx>=1.1.0",
+
     # 21 CFR Part 11 Compliance
     "ntplib>=0.4.0",  # NTP client for trusted timestamps
 ]
