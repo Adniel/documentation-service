@@ -27,6 +27,10 @@ class Workspace(Base, UUIDMixin, TimestampMixin):
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
+    # Classification default (inherits from org if None, can be stricter)
+    # None = inherit from organization.default_classification
+    default_classification: Mapped[int | None] = mapped_column(default=None, nullable=True)
+
     # Parent organization
     organization_id: Mapped[str] = mapped_column(
         UUID(as_uuid=False), ForeignKey("organizations.id"), nullable=False

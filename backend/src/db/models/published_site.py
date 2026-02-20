@@ -81,6 +81,16 @@ class PublishedSite(Base, UUIDMixin, TimestampMixin):
         JSON, nullable=True
     )  # For restricted visibility (JSON list of domain strings)
 
+    # Discovery behavior for restricted documents
+    # False = completely hidden (user doesn't know doc exists)
+    # True = show title with "Access Restricted" placeholder
+    show_restricted_as_placeholder: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False
+    )
+    restricted_placeholder_message: Mapped[str | None] = mapped_column(
+        String(500), nullable=True
+    )  # Custom message for restricted placeholders
+
     # Publishing state
     status: Mapped[str] = mapped_column(
         String(20), default=SiteStatus.DRAFT.value, nullable=False

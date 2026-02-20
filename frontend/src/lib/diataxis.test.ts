@@ -132,8 +132,8 @@ describe('templateToEditorContent', () => {
       ],
     };
 
-    const result = templateToEditorContent(template);
-    const heading = result.content[0] as any;
+    const result = templateToEditorContent(template) as { type: string; content: any[] };
+    const heading = result.content[0];
 
     expect(heading.type).toBe('heading');
     expect(heading.attrs.level).toBe(2);
@@ -148,8 +148,8 @@ describe('templateToEditorContent', () => {
       ],
     };
 
-    const result = templateToEditorContent(template);
-    const paragraph = result.content[0] as any;
+    const result = templateToEditorContent(template) as { type: string; content: any[] };
+    const paragraph = result.content[0];
 
     expect(paragraph.type).toBe('paragraph');
     expect(paragraph.content[0].text).toBe('Some text content');
@@ -163,8 +163,8 @@ describe('templateToEditorContent', () => {
       ],
     };
 
-    const result = templateToEditorContent(template);
-    const codeBlock = result.content[0] as any;
+    const result = templateToEditorContent(template) as { type: string; content: any[] };
+    const codeBlock = result.content[0];
 
     expect(codeBlock.type).toBe('codeBlock');
     expect(codeBlock.attrs.language).toBe('typescript');
@@ -179,8 +179,8 @@ describe('templateToEditorContent', () => {
       ],
     };
 
-    const result = templateToEditorContent(template);
-    const list = result.content[0] as any;
+    const result = templateToEditorContent(template) as { type: string; content: any[] };
+    const list = result.content[0];
 
     expect(list.type).toBe('bulletList');
     expect(list.content).toHaveLength(2);
@@ -195,8 +195,8 @@ describe('templateToEditorContent', () => {
       ],
     };
 
-    const result = templateToEditorContent(template);
-    const callout = result.content[0] as any;
+    const result = templateToEditorContent(template) as { type: string; content: any[] };
+    const callout = result.content[0];
 
     expect(callout.type).toBe('callout');
     expect(callout.attrs.type).toBe('warning');
@@ -204,7 +204,7 @@ describe('templateToEditorContent', () => {
 
   it('should handle tutorial template', () => {
     const tutorialTemplate = DIATAXIS_INFO.tutorial.template;
-    const result = templateToEditorContent(tutorialTemplate);
+    const result = templateToEditorContent(tutorialTemplate) as { type: string; content: any[] };
 
     expect(result.type).toBe('doc');
     expect(result.content.length).toBeGreaterThan(0);
@@ -212,7 +212,7 @@ describe('templateToEditorContent', () => {
 
   it('should handle how-to template', () => {
     const howToTemplate = DIATAXIS_INFO.how_to.template;
-    const result = templateToEditorContent(howToTemplate);
+    const result = templateToEditorContent(howToTemplate) as { type: string; content: any[] };
 
     expect(result.type).toBe('doc');
     expect(result.content.length).toBeGreaterThan(0);
@@ -220,7 +220,7 @@ describe('templateToEditorContent', () => {
 
   it('should handle reference template', () => {
     const refTemplate = DIATAXIS_INFO.reference.template;
-    const result = templateToEditorContent(refTemplate);
+    const result = templateToEditorContent(refTemplate) as { type: string; content: any[] };
 
     expect(result.type).toBe('doc');
     expect(result.content.length).toBeGreaterThan(0);
@@ -228,7 +228,7 @@ describe('templateToEditorContent', () => {
 
   it('should handle explanation template', () => {
     const explTemplate = DIATAXIS_INFO.explanation.template;
-    const result = templateToEditorContent(explTemplate);
+    const result = templateToEditorContent(explTemplate) as { type: string; content: any[] };
 
     expect(result.type).toBe('doc');
     expect(result.content.length).toBeGreaterThan(0);

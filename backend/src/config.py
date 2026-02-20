@@ -91,6 +91,16 @@ class Settings(BaseSettings):
         """Get allowed Git providers as a list."""
         return [p.strip() for p in self.git_allowed_providers.split(",") if p.strip()]
 
+    # Attachment Storage (Sprint F)
+    attachment_storage_backend: str = "local"  # "local" or "s3"
+    attachment_storage_path: str = "/tmp/docservice/attachments"
+    attachment_s3_bucket: str = ""
+    attachment_s3_region: str = "us-east-1"
+    attachment_s3_endpoint_url: str = ""  # For MinIO
+    attachment_s3_access_key: str = ""
+    attachment_s3_secret_key: str = ""
+    attachment_max_file_size_mb: int = 100
+
     # CORS - stored as comma-separated string, parsed via property
     cors_origins_str: str = Field(
         default="http://localhost:5173,http://localhost:3000",

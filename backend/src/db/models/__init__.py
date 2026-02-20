@@ -98,6 +98,13 @@ from src.db.models.service_account import (
     ServiceAccountUsage,
 )
 
+# Sprint D: Integrated Access Control
+from src.db.models.site_visitor import SiteVisitor
+from src.db.models.site_visitor_role import SiteVisitorRole
+
+# Sprint F: Attachments & Media
+from src.db.models.attachment import Attachment, AttachmentStatus
+
 __all__ = [
     # Core models
     "User",
@@ -163,4 +170,10 @@ __all__ = [
     # Sprint C: MCP Integration
     "ServiceAccount",
     "ServiceAccountUsage",
+    # Sprint D: Integrated Access Control
+    "SiteVisitor",
+    "SiteVisitorRole",
+    # Sprint F: Attachments & Media
+    "Attachment",
+    "AttachmentStatus",
 ]

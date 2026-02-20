@@ -1892,4 +1892,114 @@ export const auditApi = {
   },
 };
 
+// Attachment types (Sprint F)
+export interface AttachmentResponse {
+  id: string;
+  page_id: string;
+  filename: string;
+  original_filename: string;
+  mime_type: string;
+  file_size: number;
+  content_hash: string;
+  version: number;
+  replaces_id: string | null;
+  status: 'uploading' | 'active' | 'replaced' | 'deleted';
+  uploaded_by_id: string;
+  description: string | null;
+  alt_text: string | null;
+  width: number | null;
+  height: number | null;
+  duration_seconds: number | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AttachmentListResponse {
+  attachments: AttachmentResponse[];
+  total: number;
+}
+
+// Attachments API (Sprint F)
+export const attachmentApi = {
+  upload: async (
+    pageId: string,
+    file: File,
+    description?: string,
+    altText?: string,
+    onProgress?: (percent: number) => void,
+  ): Promise<AttachmentResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('page_id', pageId);
+    if (description) formData.append('description', description);
+    if (altText) formData.append('alt_text', altText);
+
+    const response = await api.post<AttachmentResponse>('/attachments/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      },
+    });
+    return response.data;
+  },
+
+  get: async (attachmentId: string): Promise<AttachmentResponse> => {
+    const response = await api.get<AttachmentResponse>(`/attachments/${attachmentId}`);
+    return response.data;
+  },
+
+  getContentUrl: (attachmentId: string): string => {
+    return `${api.defaults.baseURL}/attachments/${attachmentId}/content`;
+  },
+
+  getThumbnailUrl: (attachmentId: string, width = 200, height = 200): string => {
+    return `${api.defaults.baseURL}/attachments/${attachmentId}/thumbnail?width=${width}&height=${height}`;
+  },
+
+  listForPage: async (pageId: string, includeReplaced = false): Promise<AttachmentListResponse> => {
+    const response = await api.get<AttachmentListResponse>(`/attachments/page/${pageId}`, {
+      params: { include_replaced: includeReplaced },
+    });
+    return response.data;
+  },
+
+  updateMetadata: async (attachmentId: string, data: { description?: string; alt_text?: string }): Promise<AttachmentResponse> => {
+    const response = await api.patch<AttachmentResponse>(`/attachments/${attachmentId}`, data);
+    return response.data;
+  },
+
+  replace: async (
+    attachmentId: string,
+    file: File,
+    reason: string,
+    onProgress?: (percent: number) => void,
+  ): Promise<AttachmentResponse> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('reason', reason);
+
+    const response = await api.post<AttachmentResponse>(`/attachments/${attachmentId}/replace`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+      onUploadProgress: (progressEvent) => {
+        if (onProgress && progressEvent.total) {
+          const percent = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          onProgress(percent);
+        }
+      },
+    });
+    return response.data;
+  },
+
+  delete: async (attachmentId: string, reason: string): Promise<void> => {
+    await api.delete(`/attachments/${attachmentId}`, { data: { reason } });
+  },
+
+  getPublicContentUrl: (siteSlug: string, attachmentId: string): string => {
+    return `${api.defaults.baseURL}/attachments/public/${siteSlug}/${attachmentId}/content`;
+  },
+};
+
 export default api;

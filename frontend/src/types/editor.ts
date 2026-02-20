@@ -22,7 +22,9 @@ export type BlockType =
   | 'taskList'
   | 'taskItem'
   | 'image'
-  | 'callout';
+  | 'callout'
+  | 'fileAttachment'
+  | 'attachmentList';
 
 // Mark types for inline formatting
 export type MarkType =
@@ -80,7 +82,7 @@ export interface CalloutBlock extends BlockNode {
   };
 }
 
-// Image block
+// Image block (upgraded with attachment support in Sprint F)
 export interface ImageBlock extends BlockNode {
   type: 'image';
   attrs: {
@@ -89,6 +91,28 @@ export interface ImageBlock extends BlockNode {
     title?: string;
     width?: number;
     height?: number;
+    attachmentId?: string; // Sprint F: linked attachment ID
+  };
+}
+
+// File attachment block (Sprint F)
+export interface FileAttachmentBlock extends BlockNode {
+  type: 'fileAttachment';
+  attrs: {
+    attachmentId: string;
+    filename: string;
+    mimeType: string;
+    fileSize: number;
+    description?: string;
+  };
+}
+
+// Attachment list/gallery block (Sprint F)
+export interface AttachmentListBlock extends BlockNode {
+  type: 'attachmentList';
+  attrs: {
+    layout: 'list' | 'grid' | 'table';
+    attachmentIds: string[];
   };
 }
 

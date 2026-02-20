@@ -252,11 +252,13 @@ class NavigationItem(BaseModel):
     """Navigation tree item."""
 
     id: str
+    page_id: str | None = None  # Sprint D: Underlying page ID for access checks
     title: str
     slug: str
     path: str
-    type: str  # "page" or "section"
+    type: str = "page"  # "page" or "section"
     children: list["NavigationItem"] = []
+    is_restricted: bool = False  # Sprint D: True if viewer lacks access
 
 
 class SiteNavigation(BaseModel):
@@ -274,6 +276,7 @@ class RenderedPage(BaseModel):
     slug: str
     path: str
     content_html: str
+    content_markdown: str | None = None  # Sprint D: Source for content transformation
     toc: list[dict[str, Any]]  # Table of contents
     breadcrumbs: list[dict[str, str]]
     last_updated: datetime | None

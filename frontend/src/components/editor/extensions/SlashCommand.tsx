@@ -111,6 +111,39 @@ const commands: CommandItem[] = [
         .run();
     },
   },
+  {
+    title: 'Image',
+    description: 'Upload or embed an image',
+    icon: '🖼',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      // Trigger image upload dialog via custom event
+      document.dispatchEvent(new CustomEvent('editor:upload-image'));
+    },
+  },
+  {
+    title: 'File',
+    description: 'Attach a file (PDF, document, etc.)',
+    icon: '📎',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      // Trigger file upload dialog via custom event
+      document.dispatchEvent(new CustomEvent('editor:upload-file'));
+    },
+  },
+  {
+    title: 'Attachment List',
+    description: 'Display page attachments as a list',
+    icon: '📋',
+    command: ({ editor, range }) => {
+      editor
+        .chain()
+        .focus()
+        .deleteRange(range)
+        .setAttachmentList({ layout: 'list', attachmentIds: [] })
+        .run();
+    },
+  },
 ];
 
 interface CommandListProps {

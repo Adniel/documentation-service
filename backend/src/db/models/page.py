@@ -17,6 +17,7 @@ from src.db.base import Base, TimestampMixin, UUIDMixin
 
 if TYPE_CHECKING:
     from src.db.models.assessment import Assessment
+    from src.db.models.attachment import Attachment
     from src.db.models.change_request import ChangeRequest
     from src.db.models.retention_policy import RetentionPolicy
     from src.db.models.space import Space
@@ -160,6 +161,13 @@ class Page(Base, UUIDMixin, TimestampMixin):
     is_template: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
+    # === PUBLISHING DISCOVERY BEHAVIOR ===
+    # Controls how this page appears when user lacks access on published sites
+    # None = inherit from site setting (show_restricted_as_placeholder)
+    # True = show "Access Restricted" placeholder with title visible
+    # False = completely hidden (user doesn't know page exists)
+    show_when_restricted: Mapped[bool | None] = mapped_column(Boolean, default=None, nullable=True)
+
     # === PARENT REFERENCES ===
     space_id: Mapped[str] = mapped_column(
         UUID(as_uuid=False), ForeignKey("spaces.id"), nullable=False
@@ -204,6 +212,11 @@ class Page(Base, UUIDMixin, TimestampMixin):
         back_populates="page",
         uselist=False,  # One assessment per page
         cascade="all, delete-orphan",
+    )
+
+    # Sprint F: Attachments
+    attachments: Mapped[list["Attachment"]] = relationship(
+        "Attachment", back_populates="page", cascade="all, delete-orphan"
     )
 
     # Supersession relationships

@@ -89,6 +89,38 @@ async def get_current_active_user(
     return current_user
 
 
+async def get_current_user_optional(
+    token: str,
+    db: AsyncSession,
+) -> Optional[User]:
+    """Get current user from token without raising exception if invalid.
+
+    Used for public site routes where authentication is optional.
+    Returns None if token is invalid or user not found.
+    """
+    try:
+        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        user_id: str | None = payload.get("sub")
+        token_jti: str | None = payload.get("jti")
+        if user_id is None:
+            return None
+    except JWTError:
+        return None
+
+    # Validate session if JTI is present
+    if token_jti:
+        session_service = SessionService(db)
+        is_valid, _ = await session_service.validate_session(token_jti)
+        if not is_valid:
+            return None
+
+    user = await get_user_by_id(db, user_id)
+    if user is None or not user.is_active:
+        return None
+
+    return user
+
+
 # Type aliases for cleaner dependency injection
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
