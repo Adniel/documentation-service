@@ -420,6 +420,7 @@ backend/src/modules/ai/
 │   ├── base.py                  # Provider interface
 │   ├── openai_provider.py
 │   ├── anthropic_provider.py
+│   ├── openrouter_provider.py   # Multi-model gateway (OpenAI-compatible)
 │   └── ollama_provider.py       # Local model support
 ├── question_generator.py
 ├── writing_assistant.py
@@ -462,7 +463,7 @@ frontend/src/components/ai/
 
 ### Verification Criteria
 
-- [ ] AI provider configurable (OpenAI, Claude, Ollama)
+- [ ] AI provider configurable (OpenAI, Anthropic, OpenRouter, Ollama)
 - [ ] Questions generated from document content
 - [ ] Generated questions require human review
 - [ ] Writing suggestions appear in editor
