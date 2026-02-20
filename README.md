@@ -21,29 +21,37 @@ Documentation Service is a comprehensive platform for creating, managing, and pu
 - **Publishing** - Published documentation sites with themes, custom domains, and SEO
 - **MCP Integration** - Model Context Protocol server for AI agent access to documentation
 - **Admin UI** - Organization-scoped management for users, settings, and audit
+- **AI Services** - Provider-agnostic AI for question generation, writing assistance, and document masking
+- **Reader UI & Accessibility** - WCAG 2.1 AA reading experience with context menus, reading aids, and PDF/DOCX/MD export
+- **Attachments & Media** - File attachments with local or S3-compatible storage
+- **Metadata Portability** - Import/export with format adapters
+- **Compliance Documentation** - Built-in SOPs, system validation docs, risk assessments, and role-based training
 
 ## Technology Stack
 
 | Layer | Technology |
 |-------|------------|
-| Backend | Python 3.11+, FastAPI, SQLAlchemy (async) |
+| Backend | Python 3.12+, FastAPI, SQLAlchemy 2.0 (async) |
 | Frontend | React 18, TypeScript, TipTap Editor |
-| Database | PostgreSQL with TimescaleDB |
+| Database | PostgreSQL 15+ |
 | Search | Meilisearch |
+| Cache | Redis (optional) |
 | Version Control | pygit2 (libgit2) |
 | Real-time | Yjs (CRDT) |
 | Styling | Tailwind CSS |
-| State Management | Zustand |
+| State Management | Zustand, TanStack Query |
+| Logging | structlog (JSON/console) |
 | Testing | pytest, Vitest, Playwright |
 
 ## Prerequisites
 
-- **Python** 3.11 or higher
-- **Node.js** 18 or higher
-- **PostgreSQL** 14 or higher
+- **Python** 3.12 or higher
+- **Node.js** 20 LTS or higher
+- **PostgreSQL** 15 or higher
 - **Meilisearch** 1.0 or higher
 - **libgit2** (for pygit2)
 - **Docker** (optional, for running services)
+- **Redis** (optional, for response caching)
 
 ## Getting Started
 
@@ -86,6 +94,9 @@ cp .env.example .env
 # Run database migrations
 alembic upgrade head
 
+# Seed sample data (optional)
+python -m src.cli seed --fixture demo
+
 # Start the backend server
 uvicorn src.main:app --reload --port 8000
 ```
@@ -94,6 +105,7 @@ The API will be available at http://localhost:8000
 
 - API docs: http://localhost:8000/docs
 - OpenAPI spec: http://localhost:8000/openapi.json
+- Health check: http://localhost:8000/health
 
 ### 4. Frontend Setup
 
@@ -150,6 +162,30 @@ npm run lint
 npm run build
 ```
 
+### Seed Data
+
+The CLI seed tool populates the database with sample content for development:
+
+```bash
+cd backend
+
+# Full demo data (3 workspaces, 27 pages, 4 assessments with 20 questions)
+python -m src.cli seed --fixture demo
+
+# Minimal data (1 workspace, no pages)
+python -m src.cli seed --fixture minimal
+
+# Force overwrite existing data
+python -m src.cli seed --fixture demo --force
+```
+
+Or via Makefile:
+
+```bash
+make seed          # demo fixture
+make seed-minimal  # minimal fixture
+```
+
 ### Environment Variables
 
 **Backend** (`backend/.env`):
@@ -166,6 +202,11 @@ POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=docservice
 
+# Database pool tuning
+DB_POOL_SIZE=5
+DB_MAX_OVERFLOW=10
+DB_POOL_TIMEOUT=30
+
 # Security
 SECRET_KEY=your-secret-key-change-in-production
 
@@ -176,6 +217,11 @@ REDIS_URL=redis://localhost:6379
 
 # Git
 GIT_REPOS_PATH=/tmp/docservice/repos
+
+# AI (optional)
+AI_PROVIDER=openai          # openai, anthropic, openrouter, ollama
+AI_API_KEY=your-api-key
+AI_MODEL=gpt-4o-mini
 ```
 
 **Frontend** (`frontend/.env`):
@@ -233,7 +279,7 @@ npm test -- src/lib/diataxis.test.ts
 ```
 backend/tests/
 ├── conftest.py
-├── unit/
+├── unit/                              # 33 unit test files
 │   ├── test_security.py
 │   ├── test_git_service.py
 │   ├── test_search_service.py
@@ -259,8 +305,15 @@ backend/tests/
 │   ├── test_publishing_service.py
 │   ├── test_rate_limiter.py
 │   ├── test_mcp_service.py
-│   └── test_content_transformer.py
-└── integration/
+│   ├── test_content_transformer.py
+│   ├── test_storage_backends.py
+│   ├── test_attachment_service.py
+│   ├── test_diataxis_revision.py
+│   ├── test_portability_metadata.py
+│   ├── test_exporter.py
+│   ├── test_importer.py
+│   └── test_seed.py
+└── integration/                       # 16 integration test files
     ├── test_auth_api.py
     ├── test_organizations_api.py
     ├── test_workspaces_api.py
@@ -273,7 +326,10 @@ backend/tests/
     ├── test_learning_api.py
     ├── test_publishing_api.py
     ├── test_mcp_api.py
-    └── test_visitor_api.py
+    ├── test_visitor_api.py
+    ├── test_attachment_api.py
+    ├── test_diataxis_api.py
+    └── test_portability_api.py
 
 frontend/src/
 ├── test/
@@ -317,8 +373,13 @@ documentation-service/
 │   │   │       ├── publishing.py   # Site & theme management
 │   │   │       ├── service_accounts.py # MCP service accounts
 │   │   │       ├── mcp.py          # MCP JSON-RPC endpoint
-│   │   │       └── visitors.py     # External visitor access
+│   │   │       ├── visitors.py     # External visitor access
+│   │   │       ├── attachments.py  # File uploads & media
+│   │   │       ├── portability.py  # Import/export metadata
+│   │   │       ├── export.py       # PDF, DOCX, Markdown export
+│   │   │       └── ai.py          # AI services (questions, writing, masking)
 │   │   ├── db/
+│   │   │   ├── base.py             # Base, UUIDMixin, TimestampMixin
 │   │   │   ├── session.py          # Database connection
 │   │   │   └── models/             # SQLAlchemy models
 │   │   ├── modules/                # Business logic
@@ -329,24 +390,33 @@ documentation-service/
 │   │   │   ├── document_control/   # Lifecycle, numbering, metadata
 │   │   │   ├── audit/              # Immutable hash-chain audit
 │   │   │   ├── learning/           # Assessments & training
-│   │   │   ├── ai/                 # AI services
+│   │   │   ├── ai/                 # AI services (provider-agnostic)
 │   │   │   ├── mcp/                # MCP server & tools
-│   │   │   └── publishing/         # Site generation & themes
+│   │   │   ├── publishing/         # Site generation & themes
+│   │   │   ├── attachments/        # File storage backends
+│   │   │   ├── export/             # PDF/DOCX/MD generation
+│   │   │   └── portability/        # Import/export adapters
+│   │   ├── cli/                    # CLI tools
+│   │   │   ├── seed.py             # Database seeding
+│   │   │   └── fixtures.py         # Seed data (demo, minimal)
 │   │   ├── shared/                 # Shared utilities
 │   │   ├── config.py               # Application configuration
-│   │   └── main.py                 # FastAPI application
+│   │   ├── main.py                 # FastAPI application
+│   │   ├── cache.py                # Redis cache with @cached decorator
+│   │   ├── logging.py              # structlog configuration
+│   │   └── middleware.py           # Request context (X-Request-ID)
 │   ├── tests/
-│   │   ├── unit/                   # 26 unit test files
-│   │   └── integration/            # 13 integration test files
+│   │   ├── unit/                   # 33 unit test files
+│   │   └── integration/            # 16 integration test files
 │   ├── alembic/
-│   │   └── versions/               # 12 database migrations
+│   │   └── versions/               # 14 database migrations
 │   ├── alembic.ini
 │   └── pyproject.toml
 │
 ├── frontend/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── editor/             # TipTap block editor
+│   │   │   ├── editor/             # TipTap block editor + extensions
 │   │   │   ├── navigation/         # Sidebar, breadcrumbs
 │   │   │   ├── search/             # Search bar & results
 │   │   │   ├── layout/             # App shell & navigation
@@ -358,8 +428,21 @@ documentation-service/
 │   │   │   ├── git/                # Remote config, sync history
 │   │   │   ├── publishing/         # Site config, themes, publish
 │   │   │   ├── admin/              # User, org, audit management
-│   │   │   └── mcp/                # Service account management
+│   │   │   ├── mcp/                # Service account management
+│   │   │   ├── ai/                 # AI panels (questions, writing, masking)
+│   │   │   ├── help/               # Guided tour, tooltips, FAQ
+│   │   │   ├── accessibility/      # WCAG 2.1 AA components
+│   │   │   ├── reading-aids/       # Font size, line spacing, focus mode
+│   │   │   ├── context-menu/       # Right-click context menus
+│   │   │   └── portability/        # Import/export UI
 │   │   ├── pages/                  # Page components
+│   │   │   ├── DashboardPage.tsx
+│   │   │   ├── EditorPage.tsx
+│   │   │   ├── ReadingPage.tsx     # WCAG 2.1 AA reader
+│   │   │   ├── ContentBrowserPage.tsx
+│   │   │   ├── SearchResultsPage.tsx
+│   │   │   ├── AdminPage.tsx
+│   │   │   └── ...
 │   │   ├── hooks/                  # Custom React hooks
 │   │   ├── lib/                    # Utilities and API client
 │   │   ├── stores/                 # Zustand state stores
@@ -368,11 +451,17 @@ documentation-service/
 │   ├── package.json
 │   └── vitest.config.ts
 │
-├── docs/
-│   ├── adr/                        # Architecture Decision Records
+├── docs/                           # Project documentation (Diataxis)
+│   ├── tutorials/                  # Getting started guides
+│   ├── how-to/                     # Task-oriented guides
+│   ├── reference/                  # API reference, configuration
+│   │   └── api/                    # Per-module API docs
+│   ├── explanation/                # Architecture, design decisions
+│   ├── architecture/               # ADRs and module boundaries
 │   └── sprints/                    # Sprint planning documents
 │
 ├── docker-compose.yml
+├── Makefile
 ├── CLAUDE.md
 └── README.md
 ```
@@ -383,6 +472,7 @@ All API endpoints are prefixed with `/api/v1`.
 
 | Area | Endpoint | Description |
 |------|----------|-------------|
+| **Health** | `GET /health` | System health (database, redis, meilisearch) |
 | **Auth** | `POST /auth/register` | Register new user |
 | | `POST /auth/login` | Login and get tokens |
 | | `GET /auth/me` | Get current user |
@@ -411,6 +501,15 @@ All API endpoints are prefixed with `/api/v1`.
 | **MCP** | `POST /mcp/jsonrpc` | MCP JSON-RPC endpoint |
 | **Service Accounts** | `POST /service-accounts/` | Create service account |
 | **Visitors** | `POST /visitors/invite` | Invite external visitor |
+| **Attachments** | `POST /attachments/upload` | Upload file attachment |
+| **Portability** | `POST /portability/export` | Export metadata |
+| | `POST /portability/import` | Import metadata |
+| **Export** | `GET /export/pages/{id}/pdf` | Export page as PDF |
+| | `GET /export/pages/{id}/docx` | Export page as DOCX |
+| | `GET /export/pages/{id}/markdown` | Export page as Markdown |
+| **AI** | `POST /ai/generate-questions` | Generate assessment questions |
+| | `POST /ai/writing-assist` | AI writing assistance |
+| | `POST /ai/mask` | Detect and mask sensitive content |
 
 Published sites are served at `/s/{site_slug}` with navigation, search, sitemap, and robots.txt.
 
@@ -432,6 +531,8 @@ See full API documentation at http://localhost:8000/docs
 | 010 | Admin UI completion | B |
 | 011 | MCP integration (service accounts) | C |
 | 012 | Integrated access control (visitors, site access) | D |
+| 013 | Attachments & media | F |
+| 014 | Diataxis revision (per-page content types) | E |
 
 ## Sprint Roadmap
 
@@ -451,7 +552,15 @@ See full API documentation at http://localhost:8000/docs
 | A | ✅ Complete | Publishing - Sites, Themes, Static generation |
 | B | ✅ Complete | Admin UI Completion - Users, Org settings, Audit |
 | C | ✅ Complete | MCP Integration - AI agent access |
-| D | 🔄 In Progress | Integrated Access Control - Visitor management, SSO |
+| D | ✅ Complete | Integrated Access Control - Visitor management |
+| E | ✅ Complete | Diataxis Revision - Per-page content types |
+| F | ✅ Complete | Attachments & Media - Storage backends, editor integration |
+| G | ✅ Complete | Metadata Portability - Export/import with format adapters |
+| H | ✅ Complete | System Documentation - 25 docs, CLI seed, help components |
+| I | ✅ Complete | Reader UI & Accessibility - WCAG 2.1 AA, PDF/DOCX/MD export |
+| J | ✅ Complete | Performance & Operations - structlog, health checks, Redis cache |
+| K | ✅ Complete | AI Features - Question generation, writing assistant, masking |
+| L | ✅ Complete | Compliance Docs & Training - 15 compliance pages, 4 assessments |
 
 ## Contributing
 
@@ -484,7 +593,11 @@ MIT License - see LICENSE file for details.
 
 ## Documentation
 
-- [Specification](./documentation-service-specification-v3.5.md)
+- [Specification](./documentation-service-specification.md)
 - [Sprint Overview](./docs/sprints/sprint-overview.md)
-- [Architecture Decisions](./docs/adr/)
+- [Architecture Decisions](./docs/architecture/)
+- [API Reference](./docs/reference/api/)
+- [Operations Runbook](./docs/reference/operations-runbook.md)
+- [Configuration Reference](./docs/reference/configuration.md)
+- [Compliance Matrix](./docs/reference/compliance-matrix.md)
 - [Diataxis Framework](https://diataxis.fr/)
