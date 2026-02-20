@@ -165,6 +165,7 @@ def _add_pages_to_tree(tree: list[dict], pages: list[Page]) -> None:
             "status": page.status,
             "version": page.version,
             "document_number": page.document_number,
+            "diataxis_types": page.diataxis_types,
         })
 
     # Recursively add pages to tree nodes
@@ -233,6 +234,7 @@ async def get_space_tree(
                 "slug": p.slug,
                 "status": p.status,
                 "version": p.version,
+                "diataxis_types": p.diataxis_types,
             }
             for p in pages
         ],
@@ -403,6 +405,7 @@ async def get_recent_pages(
             "status": p.status,
             "version": p.version,
             "space_id": p.space_id,
+            "diataxis_types": p.diataxis_types,
             "updated_at": p.updated_at.isoformat(),
         }
         for p in pages

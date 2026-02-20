@@ -10,7 +10,7 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, JSON, String, Text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.base import Base, TimestampMixin, UUIDMixin
@@ -82,6 +82,11 @@ class Page(Base, UUIDMixin, TimestampMixin):
 
     # Classification level (public, internal, confidential, restricted)
     classification: Mapped[str] = mapped_column(String(50), default="internal", nullable=False)
+
+    # === DIATAXIS CATEGORIZATION (Sprint E) ===
+    # Per-page content type tags (e.g., ["tutorial", "how_to"])
+    # Replaces space-only categorization with flexible per-page multi-typing
+    diataxis_types: Mapped[list] = mapped_column(JSONB, default=list, server_default="[]", nullable=False)
 
     # === CONTENT ===
     content: Mapped[dict | None] = mapped_column(JSON, nullable=True)

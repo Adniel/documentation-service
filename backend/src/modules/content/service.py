@@ -175,7 +175,21 @@ async def update_space(db: AsyncSession, space: Space, space_in: SpaceUpdate) ->
 
 # Page operations
 async def create_page(db: AsyncSession, page_in: PageCreate, author_id: str) -> Page:
-    """Create a new page."""
+    """Create a new page.
+
+    If diataxis_types is None, inherits from the parent space's diataxis_type.
+    """
+    # Resolve diataxis_types: explicit or inherit from space
+    if page_in.diataxis_types is not None:
+        diataxis_types = [t.value for t in page_in.diataxis_types]
+    else:
+        # Inherit from parent space
+        space = await get_space(db, page_in.space_id)
+        if space and space.diataxis_type != "mixed":
+            diataxis_types = [space.diataxis_type]
+        else:
+            diataxis_types = []
+
     page = Page(
         title=page_in.title,
         slug=page_in.slug,
@@ -185,6 +199,7 @@ async def create_page(db: AsyncSession, page_in: PageCreate, author_id: str) -> 
         content=page_in.content,
         summary=page_in.summary,
         classification=page_in.classification.value,
+        diataxis_types=diataxis_types,
     )
     db.add(page)
     await db.commit()
@@ -206,11 +221,21 @@ async def get_page_with_space(db: AsyncSession, page_id: str) -> Page | None:
     return result.scalar_one_or_none()
 
 
-async def list_space_pages(db: AsyncSession, space_id: str) -> list[Page]:
-    """List pages in a space."""
-    result = await db.execute(
-        select(Page).where(Page.space_id == space_id).order_by(Page.sort_order)
-    )
+async def list_space_pages(
+    db: AsyncSession, space_id: str, diataxis_type: str | None = None
+) -> list[Page]:
+    """List pages in a space, optionally filtered by diataxis type."""
+    query = select(Page).where(Page.space_id == space_id)
+
+    if diataxis_type:
+        # Filter pages whose diataxis_types JSONB array contains the given type
+        from sqlalchemy import cast, type_coerce
+        from sqlalchemy.dialects.postgresql import JSONB as JSONB_TYPE
+        query = query.where(
+            Page.diataxis_types.op("@>")(f'["{diataxis_type}"]')
+        )
+
+    result = await db.execute(query.order_by(Page.sort_order))
     return list(result.scalars().all())
 
 
@@ -220,6 +245,8 @@ async def update_page(db: AsyncSession, page: Page, page_in: PageUpdate) -> Page
     for field, value in update_data.items():
         if field == "classification" and value is not None:
             setattr(page, field, value.value)
+        elif field == "diataxis_types" and value is not None:
+            setattr(page, field, [t.value if hasattr(t, "value") else t for t in value])
         else:
             setattr(page, field, value)
     await db.commit()

@@ -62,7 +62,7 @@ class SearchService:
                 "organization_id",
                 "status",
                 "classification",
-                "diataxis_type",
+                "diataxis_types",
                 "author_id",
             ],
             "sortableAttributes": [
@@ -118,7 +118,7 @@ class SearchService:
             page_data: Page data including:
                 - id, title, content_text, summary
                 - space_id, workspace_id, organization_id
-                - status, classification, diataxis_type
+                - status, classification, diataxis_types (array)
                 - author_id, created_at, updated_at
         """
         loop = asyncio.get_event_loop()
@@ -185,7 +185,7 @@ class SearchService:
                 "version",
                 "document_number",
                 "space_id",
-                "diataxis_type",
+                "diataxis_types",
                 "updated_at",
             ],
             "attributesToHighlight": ["title", "content_text", "summary"],

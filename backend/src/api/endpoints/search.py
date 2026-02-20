@@ -41,7 +41,7 @@ async def search_pages(
     if status:
         filters["status"] = status
     if diataxis_type:
-        filters["diataxis_type"] = diataxis_type
+        filters["diataxis_types"] = diataxis_type
 
     # Filter by user's clearance level (can only see documents at or below their level)
     if classification is not None:

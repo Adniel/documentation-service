@@ -212,8 +212,10 @@ export const spaceApi = {
 
 // Content (Pages) API
 export const contentApi = {
-  listBySpace: async (spaceId: string): Promise<PageSummary[]> => {
-    const response = await api.get<PageSummary[]>(`/content/space/${spaceId}/pages`);
+  listBySpace: async (spaceId: string, diataxisType?: string): Promise<PageSummary[]> => {
+    const response = await api.get<PageSummary[]>(`/content/space/${spaceId}/pages`, {
+      params: diataxisType ? { diataxis_type: diataxisType } : undefined,
+    });
     return response.data;
   },
 
@@ -228,6 +230,7 @@ export const contentApi = {
     space_id: string;
     content?: Record<string, unknown>;
     summary?: string;
+    diataxis_types?: string[];
   }): Promise<Page> => {
     const response = await api.post<Page>('/content/pages', data);
     return response.data;
@@ -394,7 +397,7 @@ export interface SearchResult {
     version: string;
     document_number?: string;
     space_id: string;
-    diataxis_type?: string;
+    diataxis_types?: string[];
     updated_at: string;
     _formatted?: {
       title?: string;
@@ -467,6 +470,7 @@ export interface NavigationTreeNode {
     status: string;
     version: string;
     document_number?: string;
+    diataxis_types?: string[];
   }>;
 }
 

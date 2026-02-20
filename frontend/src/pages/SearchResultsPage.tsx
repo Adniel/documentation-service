@@ -211,7 +211,7 @@ function SearchResultItem({ hit }: SearchResultItemProps) {
     >
       <div className="flex items-start gap-4">
         <span className="text-2xl">
-          {hit.diataxis_type ? diataxisIcons[hit.diataxis_type] || '📄' : '📄'}
+          {hit.diataxis_types?.length ? diataxisIcons[hit.diataxis_types[0]] || '📄' : '📄'}
         </span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">

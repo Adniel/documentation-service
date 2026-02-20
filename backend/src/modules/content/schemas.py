@@ -171,6 +171,7 @@ class PageCreate(PageBase):
     content: dict | None = None
     summary: str | None = None
     classification: ClassificationLevel = ClassificationLevel.PUBLIC
+    diataxis_types: list[DiataxisType] | None = None  # None = inherit from space
 
 
 class PageUpdate(BaseModel):
@@ -181,6 +182,7 @@ class PageUpdate(BaseModel):
     summary: str | None = None
     classification: ClassificationLevel | None = None
     sort_order: int | None = None
+    diataxis_types: list[DiataxisType] | None = None
 
 
 class PageResponse(PageBase):
@@ -194,6 +196,7 @@ class PageResponse(PageBase):
     version: str
     status: str
     classification: str
+    diataxis_types: list[str] = []
     content: dict | None
     summary: str | None
     git_path: str | None
@@ -216,6 +219,7 @@ class PageSummary(BaseModel):
     slug: str
     status: str
     version: str
+    diataxis_types: list[str] = []
     updated_at: datetime
 
     class Config:

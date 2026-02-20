@@ -70,6 +70,7 @@ export interface Page {
   version: string;
   status: PageStatus;
   classification: number;
+  diataxis_types: DiataxisType[];
   content: Record<string, unknown> | null;
   summary: string | null;
   git_path: string | null;
@@ -87,6 +88,7 @@ export interface PageSummary {
   slug: string;
   status: PageStatus;
   version: string;
+  diataxis_types?: DiataxisType[];
   space_id: string;
   document_number?: string;
   summary?: string;

@@ -79,6 +79,7 @@ async def create_pg(
                 "metadata": {
                     "author_id": current_user.id,
                     "classification": page.classification,
+                    "diataxis_types": page.diataxis_types,
                 },
             },
             author_name=current_user.full_name,
@@ -115,9 +116,10 @@ async def list_pg_by_space(
     space_id: str,
     db: DbSession,
     current_user: CurrentUser,
+    diataxis_type: str | None = Query(None, description="Filter by Diataxis type"),
 ) -> list[PageSummary]:
-    """List pages in a space."""
-    pages = await list_space_pages(db, space_id)
+    """List pages in a space, optionally filtered by Diataxis type."""
+    pages = await list_space_pages(db, space_id, diataxis_type=diataxis_type)
     return [PageSummary.model_validate(pg) for pg in pages]
 
 

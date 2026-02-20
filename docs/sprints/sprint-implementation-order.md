@@ -86,20 +86,27 @@ audit trail, learning module, and Git remote sync.
 ### Sprint E: Diataxis Revision (1 week)
 
 **Days 1-2**
-- [ ] Database migration for diataxis_types array on pages
-- [ ] API endpoints for multi-type assignment
-- [ ] Search filter by content type
+- [x] Database migration for diataxis_types JSONB array on pages (014_diataxis_revision.py)
+- [x] Page model updated with diataxis_types field
+- [x] Pydantic schemas updated (PageCreate, PageUpdate, PageResponse, PageSummary)
+- [x] Content service: create_page inherits from space, update_page handles types
+- [x] List pages API supports diataxis_type filter
+- [x] Search service and API updated for per-page diataxis_types array
 
 **Days 3-4**
-- [ ] ContentTypeManager admin component
-- [ ] ContentTypeEditor for custom types
-- [ ] Multi-select type picker in page editor
+- [x] Navigation service includes diataxis_types in page nodes
+- [x] Frontend types and API client updated
+- [x] DiataxisTypePicker component (multi-select badge picker)
+- [x] SearchResultsPage updated for diataxis_types array
+- [ ] ContentTypeManager admin component (custom types - deferred)
+- [ ] ContentTypeEditor for custom types (deferred)
 
 **Day 5**
-- [ ] Migration script for existing content
-- [ ] Integration tests
+- [x] Data migration: pages inherit space diataxis_type in migration
+- [x] Unit tests (test_diataxis_revision.py)
+- [x] Integration tests (test_diataxis_api.py)
 
-**Milestone:** Pages can have multiple Diataxis types. Organizations can define custom content types.
+**Milestone:** Pages can have multiple Diataxis types. Custom content types deferred to future sprint.
 
 ---
 
