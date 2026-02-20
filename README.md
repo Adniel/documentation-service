@@ -1,6 +1,6 @@
 # Documentation Service Platform
 
-A Diátaxis-based documentation platform with ISO/GxP document control, Git-based version management, and AI-powered features.
+A Diataxis-based documentation platform with ISO/GxP document control, Git-based version management, and AI-powered features.
 
 ## Overview
 
@@ -9,13 +9,18 @@ Documentation Service is a comprehensive platform for creating, managing, and pu
 ### Key Features
 
 - **Block-based Editor** - Rich WYSIWYG editing with TipTap, supporting code blocks, tables, callouts, and more
-- **Diátaxis Framework** - Content organized into Tutorials, How-to Guides, Reference, and Explanation
+- **Diataxis Framework** - Content organized into Tutorials, How-to Guides, Reference, and Explanation
 - **Git-based Version Control** - Full history, branching, and diff capabilities (abstracted for non-technical users)
-- **Document Control** - Lifecycle management with approval workflows
-- **Electronic Signatures** - 21 CFR Part 11 compliant e-signatures (planned)
+- **Document Control** - Lifecycle management with approval workflows (ISO 9001, ISO 13485)
+- **Electronic Signatures** - 21 CFR Part 11 compliant e-signatures with re-authentication and content hashing
+- **Immutable Audit Trail** - Cryptographic hash-chain audit log with compliance export
 - **Full-text Search** - Powered by Meilisearch with typo-tolerance and filtering
-- **Hierarchical Organization** - Organization → Workspace → Space → Page structure
+- **Hierarchical Organization** - Organization > Workspace > Space > Page structure
 - **Classification System** - Multi-level access control based on clearance levels
+- **Learning & Assessment** - Document acknowledgment, quizzes, and training tracking
+- **Publishing** - Published documentation sites with themes, custom domains, and SEO
+- **MCP Integration** - Model Context Protocol server for AI agent access to documentation
+- **Admin UI** - Organization-scoped management for users, settings, and audit
 
 ## Technology Stack
 
@@ -28,6 +33,8 @@ Documentation Service is a comprehensive platform for creating, managing, and pu
 | Version Control | pygit2 (libgit2) |
 | Real-time | Yjs (CRDT) |
 | Styling | Tailwind CSS |
+| State Management | Zustand |
+| Testing | pytest, Vitest, Playwright |
 
 ## Prerequisites
 
@@ -225,19 +232,53 @@ npm test -- src/lib/diataxis.test.ts
 
 ```
 backend/tests/
-├── conftest.py          # Fixtures and configuration
+├── conftest.py
 ├── unit/
-│   ├── test_security.py      # Auth, JWT, password tests
-│   ├── test_git_service.py   # Git operations tests
+│   ├── test_security.py
+│   ├── test_git_service.py
 │   ├── test_search_service.py
-│   └── test_navigation_service.py
+│   ├── test_navigation_service.py
+│   ├── test_permission_model.py
+│   ├── test_session_model.py
+│   ├── test_change_request_service.py
+│   ├── test_diff_service.py
+│   ├── test_revision_service.py
+│   ├── test_access_service.py
+│   ├── test_classification_service.py
+│   ├── test_lifecycle_service.py
+│   ├── test_numbering_service.py
+│   ├── test_metadata_service.py
+│   ├── test_retention_service.py
+│   ├── test_approval_service.py
+│   ├── test_credential_service.py
+│   ├── test_grading_service.py
+│   ├── test_learning_service.py
+│   ├── test_tiptap_to_markdown.py
+│   ├── test_sync_service.py
+│   ├── test_webhook_service.py
+│   ├── test_publishing_service.py
+│   ├── test_rate_limiter.py
+│   ├── test_mcp_service.py
+│   └── test_content_transformer.py
 └── integration/
-    └── test_auth_api.py      # API endpoint tests
+    ├── test_auth_api.py
+    ├── test_organizations_api.py
+    ├── test_workspaces_api.py
+    ├── test_spaces_api.py
+    ├── test_permissions_api.py
+    ├── test_change_requests_api.py
+    ├── test_conflict_detection.py
+    ├── test_version_control_workflow.py
+    ├── test_document_control_api.py
+    ├── test_learning_api.py
+    ├── test_publishing_api.py
+    ├── test_mcp_api.py
+    └── test_visitor_api.py
 
 frontend/src/
 ├── test/
-│   ├── setup.ts         # Test configuration
-│   └── utils.tsx        # Test utilities
+│   ├── setup.ts
+│   └── utils.tsx
 ├── lib/
 │   ├── diataxis.test.ts
 │   └── markdown.test.ts
@@ -252,63 +293,145 @@ frontend/src/
 documentation-service/
 ├── backend/
 │   ├── src/
-│   │   ├── api/              # API routes and endpoints
+│   │   ├── api/                    # API routes and endpoints
+│   │   │   ├── router.py           # Route aggregation
+│   │   │   ├── deps.py             # Dependency injection
+│   │   │   ├── public_site.py      # Public published site routes
 │   │   │   └── endpoints/
-│   │   ├── db/               # Database models and migrations
-│   │   │   ├── models/
-│   │   │   └── migrations/
-│   │   ├── modules/          # Business logic modules
-│   │   │   ├── access/       # Authentication & authorization
-│   │   │   ├── content/      # Content management, Git, Search
-│   │   │   ├── editor/       # Editor-related services
-│   │   │   └── ...
-│   │   ├── shared/           # Shared utilities
-│   │   ├── config.py         # Application configuration
-│   │   └── main.py           # FastAPI application
+│   │   │       ├── auth.py         # Authentication & sessions
+│   │   │       ├── users.py        # User management
+│   │   │       ├── organizations.py
+│   │   │       ├── workspaces.py
+│   │   │       ├── spaces.py
+│   │   │       ├── content.py      # Page CRUD
+│   │   │       ├── search.py       # Full-text search
+│   │   │       ├── navigation.py   # Nav trees & breadcrumbs
+│   │   │       ├── change_requests.py  # Drafts, reviews, diffs
+│   │   │       ├── permissions.py  # ACL management
+│   │   │       ├── document_control.py # Lifecycle, approvals
+│   │   │       ├── signatures.py   # E-signatures (21 CFR Part 11)
+│   │   │       ├── audit.py        # Audit trail & export
+│   │   │       ├── learning.py     # Assessments & quizzes
+│   │   │       ├── git.py          # Remote config & sync
+│   │   │       ├── webhooks.py     # Git provider webhooks
+│   │   │       ├── publishing.py   # Site & theme management
+│   │   │       ├── service_accounts.py # MCP service accounts
+│   │   │       ├── mcp.py          # MCP JSON-RPC endpoint
+│   │   │       └── visitors.py     # External visitor access
+│   │   ├── db/
+│   │   │   ├── session.py          # Database connection
+│   │   │   └── models/             # SQLAlchemy models
+│   │   ├── modules/                # Business logic
+│   │   │   ├── access/             # Auth, permissions, classification
+│   │   │   ├── content/            # Content management & search
+│   │   │   ├── editor/             # Editor services
+│   │   │   ├── git/                # Git abstraction layer
+│   │   │   ├── document_control/   # Lifecycle, numbering, metadata
+│   │   │   ├── audit/              # Immutable hash-chain audit
+│   │   │   ├── learning/           # Assessments & training
+│   │   │   ├── ai/                 # AI services
+│   │   │   ├── mcp/                # MCP server & tools
+│   │   │   └── publishing/         # Site generation & themes
+│   │   ├── shared/                 # Shared utilities
+│   │   ├── config.py               # Application configuration
+│   │   └── main.py                 # FastAPI application
 │   ├── tests/
+│   │   ├── unit/                   # 26 unit test files
+│   │   └── integration/            # 13 integration test files
+│   ├── alembic/
+│   │   └── versions/               # 12 database migrations
 │   ├── alembic.ini
 │   └── pyproject.toml
 │
 ├── frontend/
 │   ├── src/
-│   │   ├── components/       # React components
-│   │   │   ├── editor/
-│   │   │   ├── navigation/
-│   │   │   ├── search/
-│   │   │   └── layout/
-│   │   ├── pages/            # Page components
-│   │   ├── hooks/            # Custom React hooks
-│   │   ├── lib/              # Utilities and API client
-│   │   ├── stores/           # Zustand state stores
-│   │   ├── types/            # TypeScript types
-│   │   └── test/             # Test utilities
+│   │   ├── components/
+│   │   │   ├── editor/             # TipTap block editor
+│   │   │   ├── navigation/         # Sidebar, breadcrumbs
+│   │   │   ├── search/             # Search bar & results
+│   │   │   ├── layout/             # App shell & navigation
+│   │   │   ├── version-control/    # Change requests, diff, merge
+│   │   │   ├── signatures/         # E-signature dialogs
+│   │   │   ├── document-control/   # Lifecycle, approvals, retention
+│   │   │   ├── audit/              # Audit trail viewer
+│   │   │   ├── learning/           # Assessment builder, quizzes
+│   │   │   ├── git/                # Remote config, sync history
+│   │   │   ├── publishing/         # Site config, themes, publish
+│   │   │   ├── admin/              # User, org, audit management
+│   │   │   └── mcp/                # Service account management
+│   │   ├── pages/                  # Page components
+│   │   ├── hooks/                  # Custom React hooks
+│   │   ├── lib/                    # Utilities and API client
+│   │   ├── stores/                 # Zustand state stores
+│   │   ├── types/                  # TypeScript types
+│   │   └── test/                   # Test utilities
 │   ├── package.json
 │   └── vitest.config.ts
 │
 ├── docs/
-│   ├── adr/                  # Architecture Decision Records
-│   └── sprints/              # Sprint planning documents
+│   ├── adr/                        # Architecture Decision Records
+│   └── sprints/                    # Sprint planning documents
 │
 ├── docker-compose.yml
-├── CLAUDE.md                 # AI assistant instructions
+├── CLAUDE.md
 └── README.md
 ```
 
 ## API Overview
 
-| Endpoint | Description |
-|----------|-------------|
-| `POST /api/v1/auth/register` | Register new user |
-| `POST /api/v1/auth/login` | Login and get tokens |
-| `GET /api/v1/auth/me` | Get current user |
-| `GET /api/v1/organizations/` | List organizations |
-| `GET /api/v1/workspaces/org/{id}` | List workspaces |
-| `GET /api/v1/spaces/workspace/{id}` | List spaces |
-| `GET /api/v1/content/pages/{id}` | Get page content |
-| `GET /api/v1/search/pages` | Search pages |
-| `GET /api/v1/nav/tree/workspace/{id}` | Get navigation tree |
+All API endpoints are prefixed with `/api/v1`.
+
+| Area | Endpoint | Description |
+|------|----------|-------------|
+| **Auth** | `POST /auth/register` | Register new user |
+| | `POST /auth/login` | Login and get tokens |
+| | `GET /auth/me` | Get current user |
+| **Organizations** | `GET /organizations/` | List organizations |
+| **Workspaces** | `GET /workspaces/org/{id}` | List workspaces |
+| **Spaces** | `GET /spaces/workspace/{id}` | List spaces |
+| **Content** | `GET /content/pages/{id}` | Get page content |
+| | `POST /content/pages` | Create page |
+| **Search** | `GET /search/pages` | Search pages |
+| **Navigation** | `GET /nav/tree/workspace/{id}` | Get navigation tree |
+| **Change Requests** | `POST /content/change-requests` | Create draft |
+| | `GET /content/change-requests/{id}/diff` | View diff |
+| **Permissions** | `GET /permissions/{type}/{id}` | Get effective permissions |
+| **Document Control** | `POST /document-control/lifecycle` | Manage lifecycle |
+| | `POST /document-control/approvals` | Approval workflows |
+| **Signatures** | `POST /signatures/initiate` | Initiate e-signature |
+| | `POST /signatures/complete` | Complete e-signature |
+| **Audit** | `GET /audit/trail` | Query audit events |
+| | `GET /audit/export` | Export for compliance |
+| **Learning** | `GET /learning/assessments` | List assessments |
+| | `POST /learning/quiz-attempts` | Submit quiz attempt |
+| **Git** | `POST /git/remote` | Configure remote |
+| | `POST /git/sync` | Trigger sync |
+| **Publishing** | `POST /publishing/sites` | Create published site |
+| | `POST /publishing/sites/{id}/publish` | Publish site |
+| **MCP** | `POST /mcp/jsonrpc` | MCP JSON-RPC endpoint |
+| **Service Accounts** | `POST /service-accounts/` | Create service account |
+| **Visitors** | `POST /visitors/invite` | Invite external visitor |
+
+Published sites are served at `/s/{site_slug}` with navigation, search, sitemap, and robots.txt.
 
 See full API documentation at http://localhost:8000/docs
+
+## Database Migrations
+
+| # | Migration | Sprint |
+|---|-----------|--------|
+| 001 | Initial schema (users, orgs, workspaces, spaces, pages) | 1-3 |
+| 002 | Change requests & version control | 4 |
+| 003 | Sessions and permissions | 5 |
+| 004 | Document control (lifecycle, numbering, metadata) | 6 |
+| 005 | Electronic signatures | 7 |
+| 006 | Audit immutability (hash chain) | 8 |
+| 007 | Learning module (assessments, questions) | 9 |
+| 008 | Git remote support | 13 |
+| 009 | Publishing (sites, themes) | A |
+| 010 | Admin UI completion | B |
+| 011 | MCP integration (service accounts) | C |
+| 012 | Integrated access control (visitors, site access) | D |
 
 ## Sprint Roadmap
 
@@ -317,15 +440,18 @@ See full API documentation at http://localhost:8000/docs
 | 1 | ✅ Complete | Foundation - API, Auth, Git, DB |
 | 2 | ✅ Complete | Editor Core - Block editor, Markdown |
 | 3 | ✅ Complete | Content Organization - Hierarchy, Search |
-| 4 | 📋 Planned | Version Control UI - Diff, History |
-| 5 | 📋 Planned | Access Control - Permissions |
-| 6 | 📋 Planned | Document Control - Workflows |
-| 7 | 📋 Planned | E-Signatures - 21 CFR Part 11 |
-| 8 | 📋 Planned | Audit Trail |
-| 9 | 📋 Planned | Learning Module |
-| 10 | 📋 Planned | AI Features |
-| 11 | 📋 Planned | MCP Integration |
-| 12 | 📋 Planned | Publishing |
+| 4 | ✅ Complete | Version Control UI - Diff, History, Merge |
+| 5 | ✅ Complete | Access Control - Permissions, Classification |
+| 6 | ✅ Complete | Document Control - Lifecycle, Approvals |
+| 7 | ✅ Complete | Electronic Signatures - 21 CFR Part 11 |
+| 8 | ✅ Complete | Audit Trail - Hash chain, Export |
+| 9 | ✅ Complete | Learning Module - Assessments, Training |
+| 9.5 | ✅ Complete | Admin UI - Assessment builder, Approval config |
+| 13 | ✅ Complete | Git Remote - Sync, Webhooks |
+| A | ✅ Complete | Publishing - Sites, Themes, Static generation |
+| B | ✅ Complete | Admin UI Completion - Users, Org settings, Audit |
+| C | ✅ Complete | MCP Integration - AI agent access |
+| D | 🔄 In Progress | Integrated Access Control - Visitor management, SSO |
 
 ## Contributing
 
@@ -361,5 +487,4 @@ MIT License - see LICENSE file for details.
 - [Specification](./documentation-service-specification-v3.5.md)
 - [Sprint Overview](./docs/sprints/sprint-overview.md)
 - [Architecture Decisions](./docs/adr/)
-- [Diátaxis Framework](https://diataxis.fr/)
-# documentation-service
+- [Diataxis Framework](https://diataxis.fr/)
