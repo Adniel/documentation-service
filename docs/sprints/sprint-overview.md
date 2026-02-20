@@ -74,6 +74,14 @@ Sprint 12: Publishing & Polish ────────────────�
 | 10 | AI Features | Question gen, Masking |
 | 11 | MCP Integration | Server & Client |
 | 12 | Publishing | Sites, Themes, Analytics |
+| A | Publishing Engine | Themes, Custom Domains, Visitor Access |
+| B | Admin UI | Assessment Builder, Lifecycle UI, Approval Config |
+| C | MCP Integration | MCP Server, Service Accounts |
+| D | Access Control | Classification Enforcement, Visitor Auth |
+| E | Diataxis Revision | Per-page Content Types |
+| F | Attachments & Media | Storage Backend, Upload API, Editor Integration |
+| G | Metadata Portability | Export/Import, Format Adapters |
+| H | System Documentation | 25 Diataxis Docs, CLI Seed, Help Components |
 
 ---
 

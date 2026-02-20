@@ -423,9 +423,14 @@ api-docs: ## Open API documentation in browser
 	@echo "$(CYAN)Opening API docs...$(RESET)"
 	open http://localhost:8000/api/v1/docs 2>/dev/null || xdg-open http://localhost:8000/api/v1/docs 2>/dev/null || echo "Open http://localhost:8000/api/v1/docs in your browser"
 
-seed: ## Seed database with sample data
+seed: ## Seed database with demo data
 	@echo "$(CYAN)Seeding database...$(RESET)"
-	cd $(BACKEND_DIR) && python -m scripts.seed
+	cd $(BACKEND_DIR) && python -m src.cli seed --fixture demo
+	@echo "$(GREEN)Database seeded$(RESET)"
+
+seed-minimal: ## Seed database with minimal data
+	@echo "$(CYAN)Seeding database (minimal)...$(RESET)"
+	cd $(BACKEND_DIR) && python -m src.cli seed --fixture minimal
 	@echo "$(GREEN)Database seeded$(RESET)"
 
 .PHONY: version

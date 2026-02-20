@@ -150,14 +150,16 @@ audit trail, learning module, and Git remote sync.
 
 ---
 
-### Sprint H: System Documentation (1 week)
+### Sprint H: System Documentation (1 week) ✅
 
-- [ ] Tutorials: Getting started, create first document
-- [ ] How-to guides: Common admin tasks
-- [ ] Reference: API documentation, configuration
-- [ ] Explanation: Architecture, compliance approach
-- [ ] Fixture data for demo organization
-- [ ] CLI seed command
+- [x] Tutorials: Getting started, create first document, approval workflow, training
+- [x] How-to guides: Document numbering, retention, publishing, attachments, MCP, import/export
+- [x] Reference: API documentation (7 endpoint groups), configuration, permissions, compliance matrix
+- [x] Explanation: Architecture, git abstraction, compliance approach, security model
+- [x] Fixture data for demo organization (DEMO_FIXTURE + MINIMAL_FIXTURE)
+- [x] CLI seed command (`python -m src.cli seed --fixture demo`)
+- [x] Frontend help components (GuidedTour, HelpTooltip, VideoEmbed, FAQAccordion)
+- [x] Unit tests for seed CLI (20 tests passing)
 
 ---
 
@@ -201,7 +203,7 @@ Phase 1 (Core) - DONE
         │   └── Sprint G (Metadata Portability)
         │
         └── Phase 4 (Polish)
-            ├── Sprint H (System Documentation)
+            ├── Sprint H (System Documentation) ✅
             ├── Sprint I (Reader UI & Accessibility)
             └── Sprint J (Performance & Operations)
 ```
@@ -216,6 +218,9 @@ cd backend && pytest tests/integration/test_visitor_api.py
 # Sprint F - Attachments
 cd backend && pytest tests/unit/test_attachment_service.py tests/unit/test_storage_backends.py
 cd backend && pytest tests/integration/test_attachment_api.py
+
+# Sprint H - System Documentation
+cd backend && pytest tests/unit/test_seed.py -v
 ```
 
 ---
