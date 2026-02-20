@@ -4,7 +4,7 @@ import sys
 
 from sqlalchemy import delete, select
 
-from src.db.models import Organization, User
+from src.db.models import Assessment, AssessmentQuestion, Organization, User
 from src.db.models.organization import organization_members
 from src.db.session import async_session_maker
 from src.modules.access.security import hash_password
@@ -142,6 +142,7 @@ async def seed_database(fixture: str = "demo", force: bool = False) -> None:
 
         # Create pages
         page_count = 0
+        assessment_pages = []  # (page, page_data) tuples for pages with assessments
         print("Creating pages...")
         for page_data in data.get("pages", []):
             ws_slug = page_data["workspace_slug"]
@@ -177,17 +178,55 @@ async def seed_database(fixture: str = "demo", force: bool = False) -> None:
                     message=f"Seed: create {page_data['title']}",
                 )
 
+            if "assessment" in page_data:
+                assessment_pages.append((page, page_data))
+
             page_count += 1
             print(f"  Created page: {page_data['title']}")
+
+        # Create assessments for training pages
+        assessment_count = 0
+        if assessment_pages:
+            print("Creating assessments...")
+            for page, page_data in assessment_pages:
+                assess_data = page_data["assessment"]
+                assessment = Assessment(
+                    page_id=page.id,
+                    title=assess_data["title"],
+                    description=assess_data.get("description"),
+                    passing_score=assess_data.get("passing_score", 80),
+                    max_attempts=assess_data.get("max_attempts"),
+                    is_active=True,
+                    created_by_id=owner.id,
+                )
+                db.add(assessment)
+                await db.flush()
+
+                for idx, q_data in enumerate(assess_data.get("questions", [])):
+                    question = AssessmentQuestion(
+                        assessment_id=assessment.id,
+                        question_type=q_data["question_type"],
+                        question_text=q_data["question_text"],
+                        options=q_data.get("options"),
+                        correct_answer=q_data.get("correct_answer"),
+                        points=q_data.get("points", 1),
+                        explanation=q_data.get("explanation"),
+                        sort_order=idx,
+                    )
+                    db.add(question)
+
+                assessment_count += 1
+                print(f"  Created assessment: {assess_data['title']} ({len(assess_data.get('questions', []))} questions)")
 
         await db.commit()
 
         print()
         print("=" * 50)
         print(f"Seed complete ({fixture} fixture)")
-        print(f"  Users:      {len(data['users'])}")
-        print(f"  Workspaces: {len(data['workspaces'])}")
+        print(f"  Users:       {len(data['users'])}")
+        print(f"  Workspaces:  {len(data['workspaces'])}")
         spaces_count = sum(len(ws.get("spaces", [])) for ws in data["workspaces"])
-        print(f"  Spaces:     {spaces_count}")
-        print(f"  Pages:      {page_count}")
+        print(f"  Spaces:      {spaces_count}")
+        print(f"  Pages:       {page_count}")
+        print(f"  Assessments: {assessment_count}")
         print("=" * 50)
