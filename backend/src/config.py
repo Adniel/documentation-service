@@ -107,6 +107,27 @@ class Settings(BaseSettings):
     attachment_s3_secret_key: str = ""
     attachment_max_file_size_mb: int = 100
 
+    # AI Provider (Sprint K)
+    ai_provider: str = "openai"  # openai, anthropic, openrouter, ollama
+    ai_api_key: str = ""
+    ai_model: str = "gpt-4o-mini"
+    ai_base_url: str = ""  # Auto-resolved per provider if empty
+    ai_max_tokens: int = 4096
+    ai_temperature: float = 0.7
+    ai_timeout_seconds: int = 60
+
+    @computed_field
+    @property
+    def ai_resolved_base_url(self) -> str | None:
+        """Resolve base URL for AI provider."""
+        if self.ai_base_url:
+            return self.ai_base_url
+        provider_urls = {
+            "openrouter": "https://openrouter.ai/api/v1",
+            "ollama": "http://localhost:11434/v1",
+        }
+        return provider_urls.get(self.ai_provider)
+
     # CORS - stored as comma-separated string, parsed via property
     cors_origins_str: str = Field(
         default="http://localhost:5173,http://localhost:3000",

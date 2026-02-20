@@ -12,8 +12,10 @@ import {
   type Assessment,
   type AssessmentQuestion,
   type QuestionType,
+  type GeneratedQuestion,
 } from '../../lib/api';
 import { QuestionEditor, type QuestionFormData } from './QuestionEditor';
+import { QuestionGeneratorPanel } from '../ai/QuestionGeneratorPanel';
 
 interface AssessmentBuilderProps {
   assessmentId?: string;
@@ -57,6 +59,7 @@ export function AssessmentBuilder({
 
   const [editingQuestion, setEditingQuestion] = useState<AssessmentQuestion | null>(null);
   const [isAddingQuestion, setIsAddingQuestion] = useState(false);
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
   const [activeTab, setActiveTab] = useState<'settings' | 'questions'>('settings');
 
   const loadAssessment = useCallback(async () => {
@@ -216,6 +219,22 @@ export function AssessmentBuilder({
         setError(error.response?.data?.detail || 'Failed to reorder questions');
       }
     }
+  };
+
+  const handleAIQuestionsGenerated = async (generated: GeneratedQuestion[]) => {
+    if (!assessment) return;
+
+    for (const q of generated) {
+      await handleAddQuestion({
+        question_type: q.question_type as QuestionType,
+        question_text: q.question_text,
+        options: q.options,
+        correct_answer: q.correct_answer,
+        points: q.points,
+        explanation: q.explanation,
+      });
+    }
+    setShowAIGenerator(false);
   };
 
   const getQuestionTypeLabel = (type: QuestionType): string => {
@@ -457,16 +476,37 @@ export function AssessmentBuilder({
                 <span className="text-sm text-gray-500 ml-1">to pass</span>
               </div>
             </div>
-            <button
-              onClick={() => setIsAddingQuestion(true)}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center gap-2"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              Add Question
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowAIGenerator(true)}
+                disabled={!pageId}
+                className="px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 disabled:opacity-50 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Generate with AI
+              </button>
+              <button
+                onClick={() => setIsAddingQuestion(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Add Question
+              </button>
+            </div>
           </div>
+
+          {/* AI Question Generator */}
+          {showAIGenerator && pageId && (
+            <QuestionGeneratorPanel
+              pageId={pageId}
+              onQuestionsGenerated={handleAIQuestionsGenerated}
+              onClose={() => setShowAIGenerator(false)}
+            />
+          )}
 
           {/* Add/Edit Question Form */}
           {(isAddingQuestion || editingQuestion) && (

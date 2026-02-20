@@ -25,10 +25,12 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight';
 import { common, createLowlight } from 'lowlight';
 import { useCallback, useEffect, useState } from 'react';
 
-import { contentApi, spaceApi, learningApi } from '../lib/api';
+import { contentApi, spaceApi, learningApi, type WritingAction } from '../lib/api';
 import { useAutoSave } from '../hooks/useAutoSave';
 import { AssessmentBuilder } from '../components/learning';
 import { SignatureDialog, SignatureList } from '../components/signatures';
+import { WritingAssistantPanel } from '../components/ai/WritingAssistantPanel';
+import { MaskingPanel } from '../components/ai/MaskingPanel';
 import { useEditorShortcuts } from '../hooks/useEditorShortcuts';
 import { EditorToolbar } from '../components/editor/EditorToolbar';
 import { SaveStatusIndicator } from '../components/editor/SaveStatusIndicator';
@@ -83,6 +85,8 @@ export default function EditorPage() {
   const [showSignatureDialog, setShowSignatureDialog] = useState(false);
   const [showSignaturesPanel, setShowSignaturesPanel] = useState(false);
   const [signatureKey, setSignatureKey] = useState(0); // For refreshing signature list
+  const [aiAssist, setAiAssist] = useState<{ text: string; action: WritingAction; from: number; to: number } | null>(null);
+  const [showMaskingPanel, setShowMaskingPanel] = useState(false);
 
   // Fetch page data
   const {
@@ -263,6 +267,33 @@ export default function EditorPage() {
     enabled: true,
   });
 
+  // Listen for AI writing assist events from slash command
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if (!editor) return;
+      const { action } = (e as CustomEvent).detail as { action: WritingAction };
+      const { from, to } = editor.state.selection;
+      const selectedText = editor.state.doc.textBetween(from, to, ' ');
+
+      if (!selectedText.trim()) {
+        // If no selection, use the current paragraph text
+        const $from = editor.state.selection.$from;
+        const node = $from.parent;
+        const text = node.textContent;
+        if (text.trim()) {
+          const start = $from.start();
+          setAiAssist({ text: text, action, from: start, to: start + node.nodeSize - 2 });
+        }
+        return;
+      }
+
+      setAiAssist({ text: selectedText, action, from, to });
+    };
+
+    document.addEventListener('editor:ai-assist', handler);
+    return () => document.removeEventListener('editor:ai-assist', handler);
+  }, [editor]);
+
   // Loading state
   if (isLoading) {
     return (
@@ -409,6 +440,20 @@ export default function EditorPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                 </svg>
                 Sign
+              </button>
+              <button
+                onClick={() => setShowMaskingPanel(!showMaskingPanel)}
+                className={`px-3 py-2 rounded-md transition text-sm flex items-center gap-1.5 ${
+                  showMaskingPanel
+                    ? 'text-yellow-400 bg-slate-700'
+                    : 'text-slate-300 hover:text-white hover:bg-slate-700'
+                }`}
+                title="Scan for sensitive content"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+                Mask
               </button>
               <button
                 onClick={handleExport}
@@ -604,6 +649,32 @@ export default function EditorPage() {
         pageId={pageId}
         documentTitle={page?.title}
       />
+
+      {/* Masking Panel */}
+      {showMaskingPanel && pageId && (
+        <div className="mt-6 p-4 bg-slate-800 rounded-lg border border-slate-700">
+          <MaskingPanel
+            pageId={pageId}
+            onClose={() => setShowMaskingPanel(false)}
+          />
+        </div>
+      )}
+
+      {/* Writing Assistant Panel (floating) */}
+      {aiAssist && editor && (
+        <WritingAssistantPanel
+          selectedText={aiAssist.text}
+          action={aiAssist.action}
+          onAccept={(newText) => {
+            editor.chain().focus().insertContentAt(
+              { from: aiAssist.from, to: aiAssist.to },
+              newText,
+            ).run();
+            setAiAssist(null);
+          }}
+          onClose={() => setAiAssist(null)}
+        />
+      )}
     </div>
   );
 }

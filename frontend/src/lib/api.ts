@@ -2164,4 +2164,98 @@ export const exportApi = {
   },
 };
 
+// ============================================================================
+// AI API (Sprint K)
+// ============================================================================
+
+export type WritingAction = 'improve' | 'summarize' | 'expand' | 'simplify' | 'formalize' | 'fix_grammar' | 'translate';
+export type SensitiveCategory = 'pii' | 'financial' | 'medical' | 'credentials' | 'proprietary';
+
+export interface GenerateQuestionsRequest {
+  page_id: string;
+  count?: number;
+  question_types?: string[];
+  difficulty?: 'easy' | 'medium' | 'hard';
+  focus_topics?: string[];
+}
+
+export interface GeneratedQuestionOption {
+  id: string;
+  text: string;
+  is_correct: boolean;
+}
+
+export interface GeneratedQuestion {
+  question_type: string;
+  question_text: string;
+  options: GeneratedQuestionOption[];
+  correct_answer: string;
+  explanation: string;
+  points: number;
+  difficulty: string;
+  source_excerpt: string;
+}
+
+export interface GenerateQuestionsResponse {
+  questions: GeneratedQuestion[];
+  page_id: string;
+  page_title: string;
+  model_used: string;
+}
+
+export interface WritingAssistRequest {
+  text: string;
+  action: WritingAction;
+  context?: string;
+  target_language?: string;
+  custom_instruction?: string;
+}
+
+export interface WritingAssistResponse {
+  original_text: string;
+  suggested_text: string;
+  action: WritingAction;
+  changes_summary: string;
+  model_used: string;
+}
+
+export interface MaskRequest {
+  page_id?: string;
+  text?: string;
+  categories?: SensitiveCategory[];
+}
+
+export interface SensitiveMatch {
+  category: SensitiveCategory;
+  text: string;
+  confidence: number;
+  suggested_replacement: string;
+  context_snippet?: string;
+}
+
+export interface MaskResponse {
+  matches: SensitiveMatch[];
+  total_found: number;
+  categories_found: SensitiveCategory[];
+  masked_text?: string;
+  model_used: string;
+}
+
+export const aiApi = {
+  generateQuestions: async (data: GenerateQuestionsRequest): Promise<GenerateQuestionsResponse> => {
+    const response = await api.post<GenerateQuestionsResponse>('/ai/generate-questions', data);
+    return response.data;
+  },
+
+  writingAssist: async (data: WritingAssistRequest): Promise<WritingAssistResponse> => {
+    const response = await api.post<WritingAssistResponse>('/ai/writing-assist', data);
+    return response.data;
+  },
+
+  detectSensitive: async (data: MaskRequest): Promise<MaskResponse> => {
+    const response = await api.post<MaskResponse>('/ai/mask', data);
+    return response.data;
+  },
+};
+
 export default api;

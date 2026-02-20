@@ -144,6 +144,42 @@ const commands: CommandItem[] = [
         .run();
     },
   },
+  {
+    title: 'AI: Improve Writing',
+    description: 'Improve clarity and readability of selected text',
+    icon: '✨',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      document.dispatchEvent(new CustomEvent('editor:ai-assist', { detail: { action: 'improve' } }));
+    },
+  },
+  {
+    title: 'AI: Summarize',
+    description: 'Create a concise summary of selected text',
+    icon: '📝',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      document.dispatchEvent(new CustomEvent('editor:ai-assist', { detail: { action: 'summarize' } }));
+    },
+  },
+  {
+    title: 'AI: Expand',
+    description: 'Expand selected text with more detail',
+    icon: '📖',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      document.dispatchEvent(new CustomEvent('editor:ai-assist', { detail: { action: 'expand' } }));
+    },
+  },
+  {
+    title: 'AI: Simplify',
+    description: 'Simplify text for a broader audience',
+    icon: '💡',
+    command: ({ editor, range }) => {
+      editor.chain().focus().deleteRange(range).run();
+      document.dispatchEvent(new CustomEvent('editor:ai-assist', { detail: { action: 'simplify' } }));
+    },
+  },
 ];
 
 interface CommandListProps {

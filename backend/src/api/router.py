@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 
 from src.api.endpoints import (
+    ai,
     auth,
     users,
     organizations,
@@ -124,3 +125,6 @@ api_router.include_router(
 api_router.include_router(
     export.router, prefix="/export", tags=["Export"]
 )
+
+# AI routes (Sprint K)
+api_router.include_router(ai.router, prefix="/ai", tags=["AI"])
