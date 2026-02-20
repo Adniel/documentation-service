@@ -68,6 +68,12 @@ class Settings(BaseSettings):
             )
         )
 
+    # Database Pool
+    db_pool_size: int = 5
+    db_max_overflow: int = 10
+    db_pool_timeout: int = 30
+    db_echo: bool | None = None  # None = follow debug setting
+
     # Redis
     redis_url: str = "redis://localhost:6379"
 

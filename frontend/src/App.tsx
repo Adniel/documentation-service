@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './stores/authStore';
 import Layout from './components/Layout';
@@ -5,13 +6,26 @@ import WorkspaceLayout from './components/layout/WorkspaceLayout';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
-import AdminPage from './pages/AdminPage';
-import EditorPage from './pages/EditorPage';
-import NewPagePage from './pages/NewPagePage';
-import PageHistoryPage from './pages/PageHistoryPage';
 import ContentBrowserPage from './pages/ContentBrowserPage';
 import SearchResultsPage from './pages/SearchResultsPage';
-import ReadingPage from './pages/ReadingPage';
+import NewPagePage from './pages/NewPagePage';
+
+// Lazy-loaded heavy routes
+const AdminPage = lazy(() => import('./pages/AdminPage'));
+const EditorPage = lazy(() => import('./pages/EditorPage'));
+const ReadingPage = lazy(() => import('./pages/ReadingPage'));
+const PageHistoryPage = lazy(() => import('./pages/PageHistoryPage'));
+
+function LoadingFallback() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+      <div style={{ textAlign: 'center' }}>
+        <div className="spinner" aria-label="Loading page" role="status" />
+        <p>Loading...</p>
+      </div>
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
@@ -47,7 +61,9 @@ function App() {
         path="/admin"
         element={
           <ProtectedRoute>
-            <AdminPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <AdminPage />
+            </Suspense>
           </ProtectedRoute>
         }
       />
@@ -79,7 +95,9 @@ function App() {
         path="/editor/:pageId"
         element={
           <ProtectedRoute>
-            <EditorPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <EditorPage />
+            </Suspense>
           </ProtectedRoute>
         }
       />
@@ -89,7 +107,9 @@ function App() {
         path="/pages/:pageId"
         element={
           <ProtectedRoute>
-            <ReadingPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <ReadingPage />
+            </Suspense>
           </ProtectedRoute>
         }
       />
@@ -99,7 +119,9 @@ function App() {
         path="/pages/:pageId/history"
         element={
           <ProtectedRoute>
-            <PageHistoryPage />
+            <Suspense fallback={<LoadingFallback />}>
+              <PageHistoryPage />
+            </Suspense>
           </ProtectedRoute>
         }
       />

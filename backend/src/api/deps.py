@@ -7,6 +7,7 @@ from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.cache import RedisCache, get_cache
 from src.config import get_settings
 from src.db.session import async_session_maker
 from src.db.models import User
@@ -121,6 +122,12 @@ async def get_current_user_optional(
     return user
 
 
+def get_redis_cache() -> RedisCache | None:
+    """Get Redis cache instance."""
+    return get_cache()
+
+
 # Type aliases for cleaner dependency injection
 DbSession = Annotated[AsyncSession, Depends(get_db)]
 CurrentUser = Annotated[User, Depends(get_current_active_user)]
+Cache = Annotated[RedisCache | None, Depends(get_redis_cache)]
